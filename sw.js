@@ -1,4 +1,5 @@
-const CACHE_NAME = 'encarte-musical-v1';
+const CACHE_VERSION = 'encarte-musical-v1';
+const CACHE_NAME = `encarte-${CACHE_VERSION}`;
 const BASE = '/equilibriodistante';
 
 const ASSETS = [
