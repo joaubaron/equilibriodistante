@@ -23,7 +23,6 @@
       position: fixed;
     }
 
-    /* Carrossel horizontal com snap */
     .carousel {
       display: flex;
       width: 100vw;
@@ -36,7 +35,6 @@
     }
     .carousel::-webkit-scrollbar { display: none; }
 
-    /* Cada slide ocupa 100% da tela */
     .slide {
       flex: 0 0 100vw;
       width: 100vw;
@@ -57,51 +55,61 @@
       -webkit-user-drag: none;
     }
 
-    /* Controle de áudio */
+    /* Controle de áudio — minimalista */
     .audio-control {
       position: absolute;
       bottom: 20px;
-      right: 16px;
       z-index: 30;
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 50px;
-      padding: 10px 16px 10px 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      border: 0.5px solid rgba(255, 210, 100, 0.35);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      gap: 8px;
+    }
+
+    /* Lado esquerdo */
+    .audio-control.left {
+      left: 16px;
+      flex-direction: row;
+    }
+
+    /* Lado direito */
+    .audio-control.right {
+      right: 16px;
+      flex-direction: row-reverse;
     }
 
     .play-pause-btn {
-      background: #ffcd7e;
-      border: none;
-      width: 42px;
-      height: 42px;
+      background: rgba(255, 205, 126, 0.15);
+      border: 1px solid rgba(255, 205, 126, 0.5);
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 13px;
       cursor: pointer;
-      color: #1a1a1a;
+      color: #ffcd7e;
       flex-shrink: 0;
-      transition: transform 0.1s;
+      transition: transform 0.1s, background 0.15s;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
-    .play-pause-btn:active { transform: scale(0.92); }
+    .play-pause-btn:active { transform: scale(0.90); }
+    .play-pause-btn.playing {
+      background: rgba(255, 205, 126, 0.28);
+    }
 
     .track-name {
-      color: #f0e6d0;
-      font-size: 0.78rem;
-      font-weight: 500;
-      max-width: 155px;
+      color: rgba(240, 230, 208, 0.9);
+      font-size: 0.72rem;
+      font-weight: 400;
+      max-width: 140px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       font-family: system-ui, 'Segoe UI', sans-serif;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
 
     /* Indicador de página */
@@ -123,7 +131,6 @@
       letter-spacing: 1px;
     }
 
-    /* Hint de swipe (some depois de 4s) */
     .swipe-hint {
       position: fixed;
       top: 18px;
@@ -148,34 +155,29 @@
 <div class="page-indicator" id="pageIndicator">1 / 15</div>
 
 <script>
-  // =========================================================
-  // MAPEAMENTO: encarte → faixa(s) da pasta mp3
-  // Slides sem tracks = sem botão de play (capa/contracapa)
-  // Slides com 2 tracks tocam em sequência automática
-  // =========================================================
+  // side: "left" | "right" | null (sem botão)
   const SLIDES = [
-    { img: "encarte1.webp",  tracks: [],                                                          labels: [] },
-    { img: "encarte2.webp",  tracks: [],                                                          labels: [] },
-    { img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                           labels: ["Gente"] },
-    { img: "encarte4.webp",  tracks: ["02-Strani Amori.mp3", "03-I Venti Del Cuore.mp3"],        labels: ["Strani Amori", "I Venti Del Cuore"] },
-    { img: "encarte5.webp",  tracks: ["04-Scrivimi.mp3", "05-Dolcissima Maria.mp3"],             labels: ["Scrivimi", "Dolcissima Maria"] },
-    { img: "encarte6.webp",  tracks: ["06-LetteraLa.mp3", "07-Solitudine.mp3"],                  labels: ["LetteraLa", "Solitudine"] },
-    { img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                         labels: ["Passerà"] },
-    { img: "encarte8.webp",  tracks: ["09-Come Fa Um Onda.mp3", "10-La Forza Della Vita.mp3"],   labels: ["Come Fa Um Onda", "La Forza Della Vita"] },
-    { img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                             labels: ["Due"] },
-    { img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                      labels: ["Piú O Meno"] },
-    { img: "encarte11.webp", tracks: ["13-Vita È Adesso.mp3"],                                   labels: ["Vita È Adesso"] },
-    { img: "encarte12.webp", tracks: [],                                                          labels: [] },
-    { img: "encarte13.webp", tracks: [],                                                          labels: [] },
-    { img: "encarte14.webp", tracks: [],                                                          labels: [] },
-    { img: "encarte15.webp", tracks: [],                                                          labels: [] },
+    { img: "encarte1.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
+    { img: "encarte2.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
+    { img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                          labels: ["Gente"],                             sides: ["left"] },
+    { img: "encarte4.webp",  tracks: ["02-Strani Amori.mp3", "03-I Venti Del Cuore.mp3"],       labels: ["Strani Amori", "I Venti Del Cuore"], sides: ["left", "right"] },
+    { img: "encarte5.webp",  tracks: ["04-Scrivimi.mp3", "05-Dolcissima Maria.mp3"],            labels: ["Scrivimi", "Dolcissima Maria"],       sides: ["left", "right"] },
+    { img: "encarte6.webp",  tracks: ["06-LetteraLa.mp3", "07-Solitudine.mp3"],                 labels: ["LetteraLa", "Solitudine"],           sides: ["left", "right"] },
+    { img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                        labels: ["Passerà"],                           sides: ["left"] },
+    { img: "encarte8.webp",  tracks: ["09-Come Fa Um Onda.mp3", "10-La Forza Della Vita.mp3"],  labels: ["Come Fa Um Onda", "La Forza Della Vita"], sides: ["left", "right"] },
+    { img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                            labels: ["Due"],                               sides: ["left"] },
+    { img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                     labels: ["Piú O Meno"],                        sides: ["right"] },
+    { img: "encarte11.webp", tracks: ["13-Vita È Adesso.mp3"],                                  labels: ["Vita È Adesso"],                     sides: ["right"] },
+    { img: "encarte12.webp", tracks: [],                                                         labels: [],                                    sides: [] },
+    { img: "encarte13.webp", tracks: [],                                                         labels: [],                                    sides: [] },
+    { img: "encarte14.webp", tracks: [],                                                         labels: [],                                    sides: [] },
+    { img: "encarte15.webp", tracks: [],                                                         labels: [],                                    sides: [] },
   ];
 
-  const IMG_BASE  = "./encartes/";
-  const MP3_BASE  = "./mp3/";
-  const TOTAL     = SLIDES.length;
+  const IMG_BASE = "./encartes/";
+  const MP3_BASE = "./mp3/";
+  const TOTAL    = SLIDES.length;
 
-  // Estado global de reprodução
   let playing = {
     slideIndex: -1,
     trackIndex: 0,
@@ -184,7 +186,6 @@
     lbl: null
   };
 
-  // Para toda reprodução ativa
   function stopAll() {
     if (playing.audio) {
       playing.audio.onended = null;
@@ -193,6 +194,7 @@
     }
     if (playing.btn) {
       playing.btn.textContent = "▶";
+      playing.btn.classList.remove("playing");
       playing.btn = null;
     }
     playing.slideIndex = -1;
@@ -200,7 +202,6 @@
     playing.lbl = null;
   }
 
-  // Toca a faixa trackIndex do slide slideIndex
   function playTrack(slideIndex, trackIndex, btn, lbl) {
     const s = SLIDES[slideIndex];
     if (!s.tracks.length || trackIndex >= s.tracks.length) return;
@@ -212,41 +213,21 @@
 
     if (lbl) lbl.textContent = s.labels[trackIndex] || s.tracks[trackIndex];
     btn.textContent = "⏸";
+    btn.classList.add("playing");
 
     audio.play().catch(err => {
       console.warn("Não foi possível tocar:", err);
       btn.textContent = "▶";
+      btn.classList.remove("playing");
     });
 
-    // Ao terminar, toca a próxima faixa do mesmo slide (se houver)
     audio.onended = () => {
-      const next = trackIndex + 1;
-      if (next < s.tracks.length) {
-        playTrack(slideIndex, next, btn, lbl);
-      } else {
-        btn.textContent = "▶";
-        playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
-      }
+      btn.textContent = "▶";
+      btn.classList.remove("playing");
+      playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
     };
   }
 
-  // Toggle play/pause para um slide
-  function togglePlay(slideIndex, btn, lbl) {
-    if (playing.slideIndex === slideIndex && playing.audio) {
-      if (playing.audio.paused) {
-        playing.audio.play();
-        btn.textContent = "⏸";
-      } else {
-        playing.audio.pause();
-        btn.textContent = "▶";
-      }
-    } else {
-      // Começa do início (faixa 0 do slide)
-      playTrack(slideIndex, 0, btn, lbl);
-    }
-  }
-
-  // Monta os slides dinamicamente
   const carousel = document.getElementById("carousel");
 
   SLIDES.forEach((s, i) => {
@@ -270,14 +251,13 @@
 
     div.appendChild(img);
 
-    // Um botão por faixa
     if (s.tracks.length) {
       s.tracks.forEach((track, tIdx) => {
+        const side = s.sides[tIdx] || "left";
+
         const ctrl = document.createElement("div");
-        ctrl.className = "audio-control";
-        ctrl.style.bottom = s.tracks.length > 1
-          ? (20 + tIdx * 62) + "px"
-          : "20px";
+        ctrl.className = `audio-control ${side}`;
+        ctrl.style.bottom = "20px";
 
         const btn = document.createElement("button");
         btn.className = "play-pause-btn";
@@ -294,9 +274,11 @@
             if (playing.audio.paused) {
               playing.audio.play();
               btn.textContent = "⏸";
+              btn.classList.add("playing");
             } else {
               playing.audio.pause();
               btn.textContent = "▶";
+              btn.classList.remove("playing");
             }
           } else {
             playTrack(i, tIdx, btn, lbl);
@@ -312,21 +294,22 @@
     carousel.appendChild(div);
   });
 
-  // Atualiza indicador de página ao rolar
   const pageIndicator = document.getElementById("pageIndicator");
   carousel.addEventListener("scroll", () => {
     const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
     pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
   }, { passive: true });
 
-  // Pausa áudio quando o slide sair da tela
   const visObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) {
         const idx = parseInt(entry.target.dataset.index, 10);
         if (playing.slideIndex === idx && playing.audio && !playing.audio.paused) {
           playing.audio.pause();
-          if (playing.btn) playing.btn.textContent = "▶";
+          if (playing.btn) {
+            playing.btn.textContent = "▶";
+            playing.btn.classList.remove("playing");
+          }
         }
       }
     });
@@ -334,15 +317,16 @@
 
   document.querySelectorAll(".slide").forEach(sl => visObserver.observe(sl));
 
-  // Pausa ao esconder aba/app
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && playing.audio) {
       playing.audio.pause();
-      if (playing.btn) playing.btn.textContent = "▶";
+      if (playing.btn) {
+        playing.btn.textContent = "▶";
+        playing.btn.classList.remove("playing");
+      }
     }
   });
 
-  // Hint de swipe (some em 4s)
   const hint = document.createElement("div");
   hint.className = "swipe-hint";
   hint.innerHTML = "◀ deslize ▶";
@@ -352,7 +336,6 @@
     setTimeout(() => hint.remove(), 1000);
   }, 4000);
 
-  // Registra Service Worker
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("/equilibriodistante/sw.js")
