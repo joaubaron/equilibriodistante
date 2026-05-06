@@ -2,19 +2,20 @@
   "name": "Encarte Musical Gente",
   "short_name": "EncarteGente",
   "description": "15 encartes horizontais com trilha sonora · folheie e toque cada música",
-  "start_url": "/",
+  "start_url": "/equilibriodistante/index.html",
+  "scope": "/equilibriodistante/",
   "display": "standalone",
   "orientation": "landscape",
   "theme_color": "#111111",
   "background_color": "#000000",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/equilibriodistante/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "/equilibriodistante/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
