@@ -5,6 +5,7 @@
   "start_url": "/equilibriodistante/index.html",
   "scope": "/equilibriodistante/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "landscape",
   "theme_color": "#111111",
   "background_color": "#000000",
