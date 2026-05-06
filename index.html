@@ -56,28 +56,23 @@
     }
 
     /* Controle de áudio — minimalista */
-    .audio-control {
-      position: absolute;
-      bottom: 20px;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+.audio-control {
+  position: absolute;
+  top: 16px;
+  z-index: 30;
+}
 
-    /* Lado esquerdo */
-    .audio-control.left {
-      left: 16px;
-      flex-direction: row;
-    }
+/* Lado esquerdo */
+.audio-control.left {
+  left: 16px;
+}
 
-    /* Lado direito */
-    .audio-control.right {
-      right: 16px;
-      flex-direction: row-reverse;
-    }
+/* Lado direito */
+.audio-control.right {
+  right: 16px;
+}
 
-    .play-pause-btn {
+.play-pause-btn {
   background: rgba(0, 0, 0, 0.65);
   border: 1.5px solid #ffcd7e;
   width: 36px;
@@ -94,23 +89,10 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-.play-pause-btn:active { transform: scale(0.90); }
-.play-pause-btn.playing {
-  background: rgba(255, 205, 126, 0.25);
-}
+.play-pause-btn:active  { transform: scale(0.90); }
+.play-pause-btn.playing { background: rgba(255, 205, 126, 0.25); }
 
-.track-name {
-  color: #ffcd7e;
-  font-size: 0.75rem;
-  font-weight: 600;
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: system-ui, 'Segoe UI', sans-serif;
-  letter-spacing: 0.2px;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.8);
-}
+.track-name { display: none; }
 
     /* Indicador de página */
     .page-indicator {
@@ -156,18 +138,18 @@
 
 <script>
   // side: "left" | "right" | null (sem botão)
-  const SLIDES = [
+const SLIDES = [
     { img: "encarte1.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
     { img: "encarte2.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
-    { img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                          labels: ["Gente"],                             sides: ["left"] },
+    { img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                          labels: ["Gente"],                             sides: ["right"] },
     { img: "encarte4.webp",  tracks: ["02-Strani Amori.mp3", "03-I Venti Del Cuore.mp3"],       labels: ["Strani Amori", "I Venti Del Cuore"], sides: ["left", "right"] },
     { img: "encarte5.webp",  tracks: ["04-Scrivimi.mp3", "05-Dolcissima Maria.mp3"],            labels: ["Scrivimi", "Dolcissima Maria"],       sides: ["left", "right"] },
     { img: "encarte6.webp",  tracks: ["06-LetteraLa.mp3", "07-Solitudine.mp3"],                 labels: ["LetteraLa", "Solitudine"],           sides: ["left", "right"] },
-    { img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                        labels: ["Passerà"],                           sides: ["left"] },
+    { img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                        labels: ["Passerà"],                           sides: ["right"] },
     { img: "encarte8.webp",  tracks: ["09-Come Fa Um Onda.mp3", "10-La Forza Della Vita.mp3"],  labels: ["Come Fa Um Onda", "La Forza Della Vita"], sides: ["left", "right"] },
-    { img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                            labels: ["Due"],                               sides: ["left"] },
-    { img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                     labels: ["Piú O Meno"],                        sides: ["right"] },
-    { img: "encarte11.webp", tracks: ["13-Vita È Adesso.mp3"],                                  labels: ["Vita È Adesso"],                     sides: ["right"] },
+    { img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                            labels: ["Due"],                               sides: ["right"] },
+    { img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                     labels: ["Piú O Meno"],                        sides: ["left"] },
+    { img: "encarte11.webp", tracks: ["13-Vita È Adesso.mp3"],                                  labels: ["Vita È Adesso"],                     sides: ["left"] },
     { img: "encarte12.webp", tracks: [],                                                         labels: [],                                    sides: [] },
     { img: "encarte13.webp", tracks: [],                                                         labels: [],                                    sides: [] },
     { img: "encarte14.webp", tracks: [],                                                         labels: [],                                    sides: [] },
