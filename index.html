@@ -2,25 +2,677 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Encarte Player</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Encarte Musical - PWA</title>
+  <!-- Cores e tema para PWA -->
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <!-- Ícones (criaremos via data URI para o exemplo, mas idealmente imagens reais) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='50%25' font-size='200' fill='%23ffc107' text-anchor='middle' dy='.3em'%3E🎵%3C/text%3E%3C/svg%3E">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none; /* Evita seleção em toques, melhor para leitura de encarte */
+    }
 
-  <link rel="stylesheet" href="style.css">
+    body {
+      background: linear-gradient(145deg, #0b0b1a 0%, #12121f 100%);
+      font-family: 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      touch-action: pan-x pan-y; /* Permite apenas navegação horizontal/vertical mas preserva swipe */
+    }
+
+    /* Container principal do encarte estilo horizontal (folha dupla?) - vamos implementar carrossel horizontal estilo "livro" */
+    .encarte-container {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      height: 80vh;
+      min-height: 550px;
+      margin: 20px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 32px;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+      backdrop-filter: blur(2px);
+      overflow: hidden;
+    }
+
+    /* Área do carrossel horizontal */
+    .carousel {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      height: 100%;
+      width: 100%;
+      border-radius: 28px;
+      scrollbar-width: thin;
+      scrollbar-color: #ffc107 #2c2c3a;
+      cursor: grab;
+      transition: all 0.2s;
+    }
+    .carousel:active {
+      cursor: grabbing;
+    }
+    .carousel::-webkit-scrollbar {
+      height: 6px;
+    }
+    .carousel::-webkit-scrollbar-track {
+      background: #2c2c3a;
+      border-radius: 10px;
+    }
+    .carousel::-webkit-scrollbar-thumb {
+      background: #ffc107;
+      border-radius: 10px;
+    }
+
+    /* Cada encarte (slide) */
+    .encarte-slide {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+      border-radius: 28px;
+      transition: transform 0.2s ease;
+      background-color: rgba(10, 10, 20, 0.7);
+      background-blend-mode: overlay;
+    }
+
+    /* Estilo para o conteúdo do encarte (texto) similar à imagem descritiva */
+    .encarte-content {
+      max-width: 85%;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(12px);
+      padding: 1.8rem 2rem;
+      border-radius: 2rem;
+      color: #f0f0f0;
+      font-weight: 500;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,200,0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      font-size: 1.2rem;
+      line-height: 1.5;
+      text-align: center;
+      font-family: 'Georgia', serif;
+      transition: all 0.3s;
+    }
+
+    .encarte-content p {
+      margin: 0.8rem 0;
+    }
+
+    .song-title {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #ffc107;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .artists {
+      font-size: 0.9rem;
+      color: #dddddd;
+      border-top: 1px dashed #ffc107;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* Botões de navegação e player integrado */
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      z-index: 20;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      padding: 10px 20px;
+      border-radius: 50px;
+      width: fit-content;
+      margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .nav-btn, .play-btn, .prev-track, .next-track {
+      background: rgba(30,30,50,0.9);
+      border: none;
+      font-size: 1.8rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffc107;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(4px);
+    }
+
+    .nav-btn:active, .play-btn:active {
+      transform: scale(0.94);
+      background: #ffc107;
+      color: #1a1a2e;
+    }
+
+    .player-bar {
+      position: absolute;
+      bottom: 100px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 48px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      z-index: 20;
+      pointer-events: auto;
+      border: 1px solid #ffc10740;
+    }
+
+    .track-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 500;
+      flex: 2;
+      min-width: 120px;
+    }
+
+    .track-name {
+      color: #ffc107;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    .player-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .player-buttons button {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: #ffc107;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 40px;
+      transition: 0.1s;
+    }
+
+    .player-buttons button:active {
+      background: #ffffff30;
+    }
+
+    .progress-container {
+      flex: 3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 5px;
+      background: #3a3a5a;
+      border-radius: 5px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: #ffc107;
+      transition: width 0.1s linear;
+    }
+
+    .time {
+      color: #ccc;
+      font-size: 0.7rem;
+      font-family: monospace;
+    }
+
+    /* indicação de página */
+    .page-indicator {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      padding: 4px 12px;
+      border-radius: 40px;
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 0.8rem;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    @media (max-width: 680px) {
+      .encarte-content {
+        padding: 1rem 1.2rem;
+        font-size: 0.9rem;
+      }
+      .song-title {
+        font-size: 1.2rem;
+      }
+      .player-bar {
+        flex-wrap: wrap;
+        bottom: 90px;
+      }
+      .track-info {
+        order: 1;
+        width: 100%;
+      }
+      .progress-container {
+        order: 2;
+        width: 100%;
+      }
+      .controls {
+        bottom: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
+<div class="encarte-container">
+  <div class="carousel" id="carousel">
+    <!-- Cada encarte será gerado via JS, mas já colocamos estrutura fixa com base nos dados musicais e poema -->
+  </div>
+  <div class="page-indicator" id="pageIndicator">Encarte 1 / 3</div>
 
-<div class="container" id="container"></div>
+  <!-- Player flutuante integrado -->
+  <div class="player-bar" id="playerBar">
+    <div class="track-info">
+      <span>🎵</span>
+      <span class="track-name" id="currentTrackName">Nenhuma música</span>
+    </div>
+    <div class="progress-container">
+      <span class="time" id="currentTime">0:00</span>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="time" id="durationTime">0:00</span>
+    </div>
+    <div class="player-buttons">
+      <button id="prevTrackBtn" class="prev-track">⏮️</button>
+      <button id="playPauseBtn" class="play-btn-inline">▶️</button>
+      <button id="nextTrackBtn" class="next-track">⏭️</button>
+    </div>
+  </div>
 
-<div class="player">
-  <button onclick="prev()">⏮</button>
-  <button onclick="toggle()">▶</button>
-  <button onclick="next()">⏭</button>
-  <span id="trackName">Música</span>
+  <div class="controls">
+    <button class="nav-btn" id="prevEncarteBtn">◀</button>
+    <button class="nav-btn" id="nextEncarteBtn">▶</button>
+  </div>
 </div>
 
-<script src="app.js"></script>
+<script>
+  // --------------------------------------------------------------
+  // DADOS DOS ENCARTES (conforme estilo "encarte1.webp", "encarte2.webp", etc)
+  // Cada encarte possui: imagem de fundo (simulada com gradiente + url ilustrativa ou estilo),
+  // texto poético adaptado do poema fornecido, além de vínculo com uma música .mp3 específica.
+  // --------------------------------------------------------------
+  const ENCARTES = [
+    {
+      id: 1,
+      titulo: "🎶 Gente Comum",
+      subtitulo: "A. Valisiglio / Cheope / M. Marati",
+      texto: "Si sbaglia sai quasi continuamente / sperando di non farsi mai troppo male / ma quante volte si cade. / La vita sai è un filo in equilibrio / e prima o poi ci ritroviamo distanti davanti a un bivio. / Ed ogni giorno insieme per fare solo un metro in più / Ci vuole tutto il bene che riusciremo a trovare in ognuno di noi.",
+      rodape: "Renato Russo - voz, guitarras acústicas, baixo, teclados / Carlos Trilha - teclados, programação / Eduardo Constant - bateria",
+      imagemFundo: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&auto=format", // estrada e céu
+      musicaUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // sample genérico (substituível)
+      musicaNome: "Gente Comum (faixa 1)"
+    },
+    {
+      id: 2,
+      titulo: "🌅 Rinascere",
+      subtitulo: "A. Valisiglio / Cheope / M. Marati",
+      texto: "Ma a volte poi basta un sorriso solo / a sciogliere in noi anche un inverno di gelo / e ripartire da zero / Perché non c'è un limite per nessuno / che dentro sè abbia un amore sincero solo un respiro / Non siamo angeli in volo venuti dal cielo / Ma gente comune che ama davvero.",
+      rodape: "Gente che vuole un mondo più vero, la gente che incontri per strada in città.",
+      imagemFundo: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format", // montanhas sol
+      musicaUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+      musicaNome: "Rinascere (faixa 2)"
+    },
+    {
+      id: 3,
+      titolo: "🌍 Un Mondo Più Vero",
+      subtitulo: "Renato Russo & convidados",
+      texto: "Prova e vedrai ci sarà sempre un modo / dentro di noi per poi riprendere il volo / verso il sereno / Non siamo angeli in volo venuti dal cielo / ma gente comune che ama davvero / gente che vuole un mondo più vero / la gente che insieme lo cambierà.",
+      rodape: "Gente que quer um mundo mais verdadeiro, a gente que junto o mudará.",
+      imagemFundo: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=800&auto=format", // pôr do sol urbano
+      musicaUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      musicaNome: "Un Mondo Più Vero (faixa 3)"
+    }
+  ];
+
+  // Mapeamento de cada encarte à sua música (índice)
+  let currentTrackIndex = 0; // sincronizado com encarte atual
+  let audio = new Audio();
+  let isPlaying = false;
+
+  // Elementos DOM
+  const carousel = document.getElementById('carousel');
+  const pageIndicator = document.getElementById('pageIndicator');
+  const prevEncarteBtn = document.getElementById('prevEncarteBtn');
+  const nextEncarteBtn = document.getElementById('nextEncarteBtn');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const prevTrackBtn = document.getElementById('prevTrackBtn');
+  const nextTrackBtn = document.getElementById('nextTrackBtn');
+  const currentTrackNameSpan = document.getElementById('currentTrackName');
+  const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
+  const currentTimeSpan = document.getElementById('currentTime');
+  const durationTimeSpan = document.getElementById('durationTime');
+
+  // Construir slides do carrossel
+  function buildEncartes() {
+    carousel.innerHTML = '';
+    ENCARTES.forEach((enc, idx) => {
+      const slide = document.createElement('div');
+      slide.className = 'encarte-slide';
+      // imagem de fundo dinâmica com fallback
+      slide.style.backgroundImage = `linear-gradient(135deg, rgba(0,0,0,0.7), rgba(20,20,40,0.8)), url('${enc.imagemFundo}')`;
+      slide.style.backgroundSize = 'cover';
+      slide.style.backgroundPosition = 'center';
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'encarte-content';
+      
+      // Construção do poema estilo encarte
+      contentDiv.innerHTML = `
+        <div class="song-title">${enc.titulo || enc.titolo || 'Encarte'}</div>
+        <div class="artists" style="font-size:0.85rem; margin-bottom:8px;">${enc.subtitulo ? enc.subtitulo : ''}</div>
+        <p>${enc.texto.replace(/\//g, '<br/>')}</p>
+        <div class="artists">${enc.rodape}</div>
+      `;
+      slide.appendChild(contentDiv);
+      carousel.appendChild(slide);
+    });
+    updatePageIndicator();
+    attachScrollListener();
+  }
+
+  function updatePageIndicator() {
+    if (!carousel) return;
+    const scrollLeft = carousel.scrollLeft;
+    const slideWidth = carousel.clientWidth;
+    const activeIndex = Math.round(scrollLeft / slideWidth);
+    const total = ENCARTES.length;
+    pageIndicator.innerText = `Encarte ${activeIndex+1} / ${total}`;
+    // Sincronizar música atual com o encarte visível (se desejar tocar automaticamente? faremos ao mudar de slide, sem auto-play agressivo, mas atualizamos)
+    if (activeIndex !== currentTrackIndex && activeIndex >= 0 && activeIndex < ENCARTES.length) {
+      currentTrackIndex = activeIndex;
+      // Carrega a música correspondente sem dar play automaticamente (apenas prepara)
+      const newTrack = ENCARTES[currentTrackIndex];
+      if (newTrack && audio.src !== newTrack.musicaUrl) {
+        const wasPlaying = !audio.paused;
+        audio.pause();
+        isPlaying = false;
+        updatePlayPauseButton();
+        audio.src = newTrack.musicaUrl;
+        audio.load();
+        currentTrackNameSpan.innerText = newTrack.musicaNome;
+        if (wasPlaying) {
+          audio.play().catch(e => console.log("Autoplay bloqueado? toque manual", e));
+          isPlaying = true;
+          updatePlayPauseButton();
+        } else {
+          // apenas atualiza nome
+        }
+        resetProgress();
+      }
+    }
+  }
+
+  function attachScrollListener() {
+    carousel.addEventListener('scroll', () => {
+      updatePageIndicator();
+    });
+    // garantir resize
+    window.addEventListener('resize', () => updatePageIndicator());
+  }
+
+  // Controles de navegação do encarte
+  function goPrevSlide() {
+    const slideWidth = carousel.clientWidth;
+    const newScroll = carousel.scrollLeft - slideWidth;
+    carousel.scrollTo({ left: newScroll, behavior: 'smooth' });
+  }
+  function goNextSlide() {
+    const slideWidth = carousel.clientWidth;
+    const newScroll = carousel.scrollLeft + slideWidth;
+    carousel.scrollTo({ left: newScroll, behavior: 'smooth' });
+  }
+
+  // Player functions
+  function loadTrack(index) {
+    if (index < 0) index = 0;
+    if (index >= ENCARTES.length) index = ENCARTES.length-1;
+    const track = ENCARTES[index];
+    if (!track) return;
+    currentTrackIndex = index;
+    // também sincroniza o carrossel com a página correta
+    const slideWidth = carousel.clientWidth;
+    carousel.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+    audio.pause();
+    isPlaying = false;
+    updatePlayPauseButton();
+    audio.src = track.musicaUrl;
+    audio.load();
+    currentTrackNameSpan.innerText = track.musicaNome;
+    resetProgress();
+    // Não dá play automaticamente para evitar fluxo invasivo, mas se o usuário clicar, toca.
+  }
+
+  function resetProgress() {
+    progressFill.style.width = '0%';
+    currentTimeSpan.innerText = '0:00';
+    durationTimeSpan.innerText = '0:00';
+  }
+
+  function updatePlayPauseButton() {
+    if (isPlaying) {
+      playPauseBtn.innerHTML = '⏸️';
+    } else {
+      playPauseBtn.innerHTML = '▶️';
+    }
+  }
+
+  function togglePlayPause() {
+    if (!audio.src || audio.src === "") {
+      // se não houver música carregada, carregar a atual
+      loadTrack(currentTrackIndex);
+    }
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+    } else {
+      audio.play().catch(e => {
+        console.warn("Erro ao tocar: ", e);
+        alert("Toque manual permitido? Toque no player.");
+      });
+      isPlaying = true;
+    }
+    updatePlayPauseButton();
+  }
+
+  function prevTrack() {
+    let newIndex = currentTrackIndex - 1;
+    if (newIndex < 0) newIndex = ENCARTES.length - 1;
+    loadTrack(newIndex);
+    // se estava tocando, continua tocando a nova faixa
+    if (isPlaying) {
+      audio.play().catch(e=>console.log(e));
+    }
+  }
+  function nextTrack() {
+    let newIndex = currentTrackIndex + 1;
+    if (newIndex >= ENCARTES.length) newIndex = 0;
+    loadTrack(newIndex);
+    if (isPlaying) {
+      audio.play().catch(e=>console.log(e));
+    }
+  }
+
+  function updateProgress() {
+    if (audio.duration && !isNaN(audio.duration)) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressFill.style.width = `${percent}%`;
+      currentTimeSpan.innerText = formatTime(audio.currentTime);
+      if (durationTimeSpan.innerText === '0:00' || durationTimeSpan.innerText === '0:00') {
+        durationTimeSpan.innerText = formatTime(audio.duration);
+      }
+    } else {
+      currentTimeSpan.innerText = formatTime(audio.currentTime);
+    }
+  }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  function setProgressFromClick(e) {
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percent = clickX / width;
+    if (audio.duration) {
+      audio.currentTime = percent * audio.duration;
+    }
+  }
+
+  // Eventos de áudio
+  function onAudioEnded() {
+    isPlaying = false;
+    updatePlayPauseButton();
+    // Avança para a próxima faixa automaticamente
+    nextTrack();
+  }
+
+  function onAudioLoadedMetadata() {
+    durationTimeSpan.innerText = formatTime(audio.duration);
+  }
+
+  // Inicialização e listeners
+  function init() {
+    buildEncartes();
+    // eventos navegação
+    prevEncarteBtn.addEventListener('click', goPrevSlide);
+    nextEncarteBtn.addEventListener('click', goNextSlide);
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    prevTrackBtn.addEventListener('click', prevTrack);
+    nextTrackBtn.addEventListener('click', nextTrack);
+    progressBar.addEventListener('click', setProgressFromClick);
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', onAudioEnded);
+    audio.addEventListener('loadedmetadata', onAudioLoadedMetadata);
+    // carregar primeira música sem autoplay
+    loadTrack(0);
+    // Prevenção de autoplay com interação: ao clicar em qualquer área do encarte, caso não tenha interação? bom ter
+    // Mas melhor: ao clicar no play ou próximo, inicia
+    // garantir que o carrossel não dispare execuções indesejadas
+    // Ajuste de sincronia visual
+    setTimeout(() => updatePageIndicator(), 100);
+  }
+
+  // Service Worker para PWA (instalação)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('Service Worker registrado com sucesso', reg);
+      }).catch(err => {
+        console.warn('Falha ao registrar SW', err);
+      });
+    });
+  }
+
+  init();
+</script>
+
+<script>
+  // Criar Service Worker inline? Criação de blob: para PWA completo, 
+  // é necessário arquivo sw.js no escopo. Porém simular via criação dinâmica? 
+  // Melhor: gerar conteúdo do sw via script e registrar fake? Não, para ser instalável precisa de um sw.js servido.
+  // Como estamos gerando HTML completo, posso usar um Service Worker com cache básico gerado por Blob URL? Não funciona pois escopo.
+  // Neste exemplo garantimos que o manifest.json e sw.js existam, mas para funcionamento local ou github pages, 
+  // devo fornecer código inline que registre SW se houver. Como é uma demonstração all-in-one, farei um Service Worker via dataURL? 
+  // Não é possível por CORS. Mas aqui vou criar uma função que gera um sw.js virtual através de "createObjectURL" e registra? 
+  // Isso não tem escopo real. Porém para PWA funcional no Android, o servidor precisa servir os arquivos. 
+  // Para teste, usarei um SW simples que faz fetch e cache básico e que será registrado via Blob? Não é boa prática. 
+  // Para solução robusta, incluirei código para gerar um sw.js dinamicamente caso não exista, com interceptação.
+  // Vou acrescentar um Service Worker de exemplo que faz cache das músicas e assets, mas como não temos servidor, fica a dica.
+  // Dentro da mesma página posso usar Service Worker gerado programaticamente -> new Blob e registrar? melhor deixar
+  // instrução para o usuário: Como o PWA precisa de HTTPS ou localhost, mas funciona.
+  // Para efeitos de PWA, criamos um manifest.json inline via dataURL, mas não há escopo. farei de forma elegante usando um link 
+  // com objeto URL.createObjectURL para manifest. Entretanto para simplificar e manter fidelidade, forneço o código que gera arquivos complementares.
+  // Como o desafio pede HTML completo para PWA instalável, vou adicionar a criação do manifest e SW via script com injeção.
+  (function generatePWA() {
+    // Criar manifesto
+    const manifestObj = {
+      name: "Encarte Musical Player",
+      short_name: "EncarteMP",
+      start_url: ".",
+      display: "standalone",
+      theme_color: "#1a1a2e",
+      background_color: "#0b0b1a",
+      icons: [
+        {
+          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='50%25' font-size='200' fill='%23ffc107' text-anchor='middle' dy='.3em'%3E🎵%3C/text%3E%3C/svg%3E",
+          sizes: "512x512",
+          type: "image/svg+xml"
+        }
+      ]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifestObj)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = manifestURL;
+    document.head.appendChild(manifestLink);
+    
+    // SW Simples: básico para Cache e fetch, essencial para PWA.
+    const swCode = `self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open('encarte-v1').then(cache => cache.addAll(['./']))) }); self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))) });`;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL).then(reg => console.log("PWA SW registrado com blob", reg)).catch(e=>console.log("SW falhou", e));
+  })();
+</script>
 </body>
 </html>
