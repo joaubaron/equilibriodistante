@@ -6,8 +6,8 @@
   "scope": "/equilibriodistante/",
   "display": "fullscreen",
   "orientation": "landscape",
-  "theme_color": "#fedc5e",
-  "background_color": "#fedc5e",
+  "theme_color": "#fefbea",
+  "background_color": "#fefbea",
   "icons": [
     {
       "src": "/equilibriodistante/icon-192.png",
