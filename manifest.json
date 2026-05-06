@@ -1,13 +1,13 @@
 {
-  "name": "Encarte Musical · Gente",
-  "short_name": "Gente",
+  "name": "Equilibrio Distante",
+  "short_name": "Equilibrio Distante",
   "description": "Encarte digital do álbum Gente — folheie e ouça cada faixa",
   "start_url": "/equilibriodistante/index.html",
   "scope": "/equilibriodistante/",
   "display": "fullscreen",
   "orientation": "landscape",
-  "theme_color": "#000000",
-  "background_color": "#000000",
+  "theme_color": "#fedc5e",
+  "background_color": "#fedc5e",
   "icons": [
     {
       "src": "/equilibriodistante/icon-192.png",
