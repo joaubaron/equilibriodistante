@@ -1,7 +1,7 @@
 {
   "name": "Equilibrio Distante",
   "short_name": "Equilibrio Distante",
-  "description": "Encarte digital do álbum Gente — folheie e ouça cada faixa",
+  "description": "Álbum solo de Renato Russo, lançado em dezembro de 1995. O disco é inteiramente composto por regravações de canções clássicas e populares em italiano.",
   "start_url": "/equilibriodistante/index.html",
   "scope": "/equilibriodistante/",
   "display": "fullscreen",
