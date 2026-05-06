@@ -1,4 +1,4 @@
-const CACHE_VERSION = '06.05.2026-1255';
+const CACHE_VERSION = '06.05.2026-1256';
 const CACHE_NAME = `encarte-${CACHE_VERSION}`;
 const BASE = '/equilibriodistante';
 
