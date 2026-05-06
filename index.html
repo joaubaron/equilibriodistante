@@ -281,24 +281,7 @@ const SLIDES = [
     pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
   }, { passive: true });
 
-  const visObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) {
-        const idx = parseInt(entry.target.dataset.index, 10);
-        if (playing.slideIndex === idx && playing.audio && !playing.audio.paused) {
-          playing.audio.pause();
-          if (playing.btn) {
-            playing.btn.textContent = "▶";
-            playing.btn.classList.remove("playing");
-          }
-        }
-      }
-    });
-  }, { threshold: 0.4 });
-
-  document.querySelectorAll(".slide").forEach(sl => visObserver.observe(sl));
-
-  document.addEventListener("visibilitychange", () => {
+document.addEventListener("visibilitychange", () => {
     if (document.hidden && playing.audio) {
       playing.audio.pause();
       if (playing.btn) {
