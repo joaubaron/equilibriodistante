@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Encarte Musical · Gente</title>
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#111111">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <!-- Favicon & Icons (fallback) -->
+  <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111111'/%3E%3Ctext x='50' y='68' font-size='48' text-anchor='middle' fill='%23e0b05c'%3E♪%3C/text%3E%3C/svg%3E">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none; /* evitar seleção ao arrastar */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #0a0a0a;
+      overflow: hidden;
+      font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+      touch-action: pan-x pan-y; /* permitir pan, mas cuidamos do horizontal */
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* container principal horizontal: swipe nativo com snap */
+    .carousel {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      height: 100vh;
+      width: 100vw;
+      background: #000;
+      scrollbar-width: none; /* Firefox: esconde scrollbar */
+      -ms-overflow-style: none;
+      touch-action: pan-y pinch-zoom; /* scroll horizontal suave */
+    }
+
+    .carousel::-webkit-scrollbar {
+      display: none;  /* Chrome/Safari esconde barra */
+    }
+
+    /* cada encarte = slide horizontal fixo */
+    .slide {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      position: relative;
+      background: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* imagem do encarte - manter proporção e ocupar toda altura/largura */
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;  /* mantém arte legível, sem cortar, fundo preto */
+      background: #000;
+      pointer-events: none;  /* evitar conflitos com toque */
+    }
+
+    /* botão oculto de áudio + overlay sutil (tocar/pausar) */
+    .audio-control {
+      position: absolute;
+      bottom: 24px;
+      right: 20px;
+      z-index: 30;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      border-radius: 60px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 0.5px solid rgba(255,215,120,0.5);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: 0.2s;
+    }
+
+    .play-pause-btn {
+      background: #ffcd7e;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      color: #1f1f1f;
+      transition: 0.1s linear;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .play-pause-btn:active {
+      transform: scale(0.96);
+    }
+
+    .track-name {
+      color: #f0e6d0;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* indicador de página */
+    .page-indicator {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      pointer-events: none;
+      z-index: 25;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,245,210,0.85);
+      background: rgba(0,0,0,0.45);
+      display: inline-block;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 5px 14px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    /* pequena dica de swipe */
+    .swipe-hint {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 30px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #ffe0a3;
+      pointer-events: none;
+      backdrop-filter: blur(5px);
+      z-index: 25;
+      font-weight: 500;
+    }
+
+    /* responsivo: manter sempre horizontal e usável */
+    @media (orientation: portrait) {
+      .carousel {
+        scroll-snap-type: x mandatory;
+      }
+      .slide img {
+        object-fit: contain;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="carousel" id="carouselContainer"></div>
+
+<script>
+  // ======================= CONFIGURAÇÃO =======================
+  // TOTAL DE 15 ENCARTES (encarte1.webp a encarte15.webp)
+  // ÁUDIOS: cada encarte tem sua trilha .mp3 numerada 1..15
+  // As pastas: ENCARTES na raiz do PWA (./encartes/encarteX.webp)
+  // MP3: ./audio/faixaX.mp3   (ou ./musicas/faixaX.mp3, adaptado)
+  // * Ajuste conforme seus arquivos. Vamos usar pasta /audio/ e /encartes/
+  // Em produção, copie seus arquivos. Para demonstração local, usamos fallback exemplos.
+  //
+  // Para evitar erros e garantir funcionamento offline, cada slide carrega
+  // imagem e áudio com Source. Se alguma imagem não existir, aparece texto.
+  // Porém os arquivos devem estar disponíveis na estrutura correta.
+  // -------------------------------------------------------------
+
+  const TOTAL_SLIDES = 15;
+
+  // Vamos pré definir metadados dos áudios (nome opcional para exibição)
+  // Você pode personalizar titulos ou extrair do filename. Usaremos "Faixa 01"...
+  const trackTitles = [
+    "Unisono della vita", "Equilibrio sottile", "Il filo e il bivio",
+    "Un metro in più", "Dentro ogni bene", "Sorriso e inverno",
+    "Ricominciare da zero", "Amore sincero", "Respiro infinito",
+    "Gente comune", "Mondo più vero", "Incontri per strada",
+    "Riprendere il volo", "Verso il sereno", "Insieme cambierà"
+  ];
+
+  // Caminhos (raiz relativa)
+  const IMG_BASE = "./encartes/";
+  const AUDIO_BASE = "./audio/";
+
+  // Para fallback em caso de erro 404: texto gentil ou cor sólida.
+  // Mas idealmente coloque webp e mp3 reais.
+
+  // Elemento principal
+  const carousel = document.getElementById("carouselContainer");
+
+  // Armazenar elementos de áudio e referências do slide ativo
+  let audioElements = [];         // array de objetos { audio, slideIndex, isPlaying, btn, trackSpan }
+  let currentPlayingIndex = -1;   // índice do slide que está atualmente tocando
+  let observer = null;            // intersection observer para gerenciar pausa automática quando sair da tela
+
+  // Criar slides dinamicamente
+  function buildSlides() {
+    carousel.innerHTML = "";
+    audioElements = [];
+    for (let i = 0; i < TOTAL_SLIDES; i++) {
+      const slideIndex = i; // 0-based
+      const num = i + 1;
+      const imgSrc = `${IMG_BASE}encarte${num}.webp`;
+      const audioSrc = `${AUDIO_BASE}faixa${num}.mp3`;
+      const trackName = trackTitles[i] || `Faixa ${num}`;
+
+      // slide container
+      const slideDiv = document.createElement("div");
+      slideDiv.className = "slide";
+      slideDiv.setAttribute("data-slide-index", slideIndex);
+
+      // Imagem
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      img.alt = `Encarte ${num} · ${trackName}`;
+      img.onerror = () => {
+        // Caso imagem não encontrada: fundo escuro com texto arte ausente (não quebra navegação)
+        if (!img.dataset.fallbackSet) {
+          img.dataset.fallbackSet = "true";
+          img.style.objectFit = "cover";
+          img.src = ""; // limpa source quebrada
+          img.alt = `[Arte ${num}]`;
+          img.style.background = "#2a2418";
+          // Criar elemento decorativo
+          const parent = img.parentNode;
+          if (parent && !parent.querySelector(".fallback-text")) {
+            const fallbackSpan = document.createElement("div");
+            fallbackSpan.className = "fallback-text";
+            fallbackSpan.innerText = `🎵 ${trackName}\nEncarte ${num}`;
+            fallbackSpan.style.position = "absolute";
+            fallbackSpan.style.color = "#e2c28b";
+            fallbackSpan.style.fontSize = "1.5rem";
+            fallbackSpan.style.textAlign = "center";
+            fallbackSpan.style.fontWeight = "bold";
+            fallbackSpan.style.textShadow = "0 2px 5px black";
+            fallbackSpan.style.zIndex = "2";
+            parent.style.position = "relative";
+            parent.appendChild(fallbackSpan);
+          }
+        }
+      };
+
+      slideDiv.appendChild(img);
+
+      // Criar área de controle de áudio personalizada
+      const audioControlDiv = document.createElement("div");
+      audioControlDiv.className = "audio-control";
+
+      const playPauseBtn = document.createElement("button");
+      playPauseBtn.className = "play-pause-btn";
+      playPauseBtn.innerHTML = "▶️";
+      playPauseBtn.setAttribute("aria-label", "Tocar música");
+
+      const trackSpan = document.createElement("span");
+      trackSpan.className = "track-name";
+      trackSpan.innerText = trackName;
+
+      audioControlDiv.appendChild(playPauseBtn);
+      audioControlDiv.appendChild(trackSpan);
+      slideDiv.appendChild(audioControlDiv);
+
+      // Criar objeto Audio
+      const audioObj = new Audio(audioSrc);
+      audioObj.preload = "metadata";
+      audioObj.loop = false; // cada faixa pode tocar até próxima, mas sem loop (opcional)
+      // Tratamento de erro: se não encontrar MP3, apenas desabilita botão com feedback visual
+      audioObj.onerror = () => {
+        console.warn(`Áudio não encontrado: ${audioSrc}`);
+        playPauseBtn.disabled = true;
+        playPauseBtn.style.opacity = "0.5";
+        playPauseBtn.title = "Áudio indisponível";
+        trackSpan.innerText += " (indisponível)";
+      };
+
+      // Evento para botão
+      playPauseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePlay(slideIndex, audioObj, playPauseBtn, trackSpan);
+      });
+
+      // Guardar referência para controle
+      audioElements.push({
+        index: slideIndex,
+        audio: audioObj,
+        btn: playPauseBtn,
+        trackSpan: trackSpan,
+        isPlaying: false
+      });
+
+      carousel.appendChild(slideDiv);
+    }
+
+    // Adicionar indicador de página dinâmico
+    addGlobalPageIndicator();
+
+    // após slides montados, configurar IntersectionObserver para pausar quando slide sai de foco
+    setupSlideVisibilityObserver();
+
+    // Evento de scroll para atualizar indicador de página
+    carousel.addEventListener("scroll", updatePageIndicator);
+    window.addEventListener("resize", () => { updatePageIndicator(); });
+    updatePageIndicator();
+
+    // Adicionar pequeno hint visual de swipe
+    addSwipeHint();
+  }
+
+  // Função de toggle play/pause com gerenciamento global: apenas um slide toca por vez
+  function togglePlay(slideIndex, audioObj, btnElement, trackSpan) {
+    const currentAudioData = audioElements.find(el => el.index === slideIndex);
+    if (!currentAudioData) return;
+
+    // Se há outro slide tocando, pausa imediatamente
+    if (currentPlayingIndex !== -1 && currentPlayingIndex !== slideIndex) {
+      const previousAudioData = audioElements.find(el => el.index === currentPlayingIndex);
+      if (previousAudioData && previousAudioData.isPlaying) {
+        previousAudioData.audio.pause();
+        previousAudioData.isPlaying = false;
+        if (previousAudioData.btn) previousAudioData.btn.innerHTML = "▶️";
+        // atualiza trackSpan sutilmente
+      }
+    }
+
+    // Agora lida com o slide atual
+    if (currentAudioData.isPlaying) {
+      // pausar
+      audioObj.pause();
+      currentAudioData.isPlaying = false;
+      btnElement.innerHTML = "▶️";
+      currentPlayingIndex = -1;
+    } else {
+      // tocar
+      // garantir que outro não esteja marcado como playing
+      if (currentPlayingIndex !== -1 && currentPlayingIndex !== slideIndex) {
+        const other = audioElements.find(el => el.index === currentPlayingIndex);
+        if (other) {
+          other.audio.pause();
+          other.isPlaying = false;
+          if (other.btn) other.btn.innerHTML = "▶️";
+        }
+      }
+      audioObj.play().catch(err => {
+        console.warn("Reprodução bloqueada ou erro:", err);
+        // Se erro por autoplay, ainda tenta mas ou usuário clicou; permitido por gesto
+      });
+      currentAudioData.isPlaying = true;
+      btnElement.innerHTML = "⏸️";
+      currentPlayingIndex = slideIndex;
+
+      // Quando a música terminar, resetar ícone
+      audioObj.onended = () => {
+        if (currentAudioData.isPlaying) {
+          currentAudioData.isPlaying = false;
+          if (btnElement) btnElement.innerHTML = "▶️";
+          if (currentPlayingIndex === slideIndex) currentPlayingIndex = -1;
+        }
+      };
+    }
+  }
+
+  // Pausar todas as músicas (útil quando sair da visibilidade total)
+  function pauseAllAudios() {
+    audioElements.forEach(elem => {
+      if (elem.isPlaying) {
+        elem.audio.pause();
+        elem.isPlaying = false;
+        if (elem.btn) elem.btn.innerHTML = "▶️";
+      }
+    });
+    currentPlayingIndex = -1;
+  }
+
+  // Observador de visibilidade dos slides: pausa o áudio do slide que está fora da tela
+  function setupSlideVisibilityObserver() {
+    const slides = document.querySelectorAll(".slide");
+    if (!slides.length) return;
+
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        const slideEl = entry.target;
+        const indexAttr = slideEl.getAttribute("data-slide-index");
+        if (indexAttr === null) return;
+        const idx = parseInt(indexAttr, 10);
+        if (!entry.isIntersecting) {
+          // Slide não está visível => se ele está reproduzindo, pausar
+          const audioData = audioElements.find(el => el.index === idx);
+          if (audioData && audioData.isPlaying) {
+            audioData.audio.pause();
+            audioData.isPlaying = false;
+            if (audioData.btn) audioData.btn.innerHTML = "▶️";
+            if (currentPlayingIndex === idx) currentPlayingIndex = -1;
+          }
+        }
+      });
+    };
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.3  // quando menos de 30% visível, considera fora da tela
+    });
+    slides.forEach(slide => observer.observe(slide));
+  }
+
+  // Indicador de página tipo "encarte 5 / 15"
+  let indicatorDiv = null;
+  function addGlobalPageIndicator() {
+    indicatorDiv = document.createElement("div");
+    indicatorDiv.className = "page-indicator";
+    document.body.appendChild(indicatorDiv);
+  }
+
+  function updatePageIndicator() {
+    if (!carousel) return;
+    const scrollLeft = carousel.scrollLeft;
+    const slideWidth = carousel.clientWidth;
+    if (slideWidth === 0) return;
+    const activeIndex = Math.round(scrollLeft / slideWidth);
+    const currentPage = Math.min(Math.max(activeIndex, 0), TOTAL_SLIDES - 1) + 1;
+    if (indicatorDiv) {
+      indicatorDiv.innerText = `${currentPage} / ${TOTAL_SLIDES} · ${trackTitles[currentPage-1] || "Encarte"}`;
+    }
+  }
+
+  function addSwipeHint() {
+    const hint = document.createElement("div");
+    hint.className = "swipe-hint";
+    hint.innerHTML = "◀  deslize  ▶";
+    document.body.appendChild(hint);
+    setTimeout(() => {
+      hint.style.opacity = "0.6";
+      setTimeout(() => {
+        hint.style.transition = "opacity 1s";
+        hint.style.opacity = "0";
+        setTimeout(() => hint.remove(), 1200);
+      }, 3800);
+    }, 800);
+  }
+
+  // Prevenir comportamento padrão de arrastar imagens e garantir boa experiência tátil
+  function preventDragGestures() {
+    document.querySelectorAll('img').forEach(img => {
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+    });
+  }
+
+  // Adicional: se o usuário trocar de música e carregar nova faixa, não conflitar
+  // Garantir que ao scrollar, se o áudio de outro slide estiver tocando, fique pausado pelo observer
+  // também ao clicar no botão de play no slide atual, interrompe outros
+
+  // Inicialização e também suporte para "Instalar PWA" com service worker
+  function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/equilibriodistante/sw.js').then(reg => {
+        console.log('Service Worker registrado com sucesso:', reg);
+      }).catch(err => {
+        console.warn('Falha ao registrar SW:', err);
+      });
+    }
+  }
+
+  // carregar também verificação se áudio pode tocar com a pagina ativa, nenhum problema
+
+  // Evento resize: atualizar indicador e garantir que o scroll snap se ajusta
+  window.addEventListener("resize", () => {
+    updatePageIndicator();
+    // opcional: realinhar scroll
+    if (carousel) {
+      const currentIdx = currentPlayingIndex !== -1 ? currentPlayingIndex : 0;
+      const slideWidth = carousel.clientWidth;
+      if (slideWidth && document.querySelector(".slide")) {
+        // apenas se existir
+      }
+    }
+  });
+
+  // Configura botões e imagens contra arrastar
+  buildSlides();
+  preventDragGestures();
+
+  // suporte para quando o app retornar ao foco (manter estado do áudio: sem retomar automaticamente se não estiver visível)
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      // se a aba esconder, pausar todos
+      pauseAllAudios();
+    } else {
+      // ao retornar, não retomar automaticamente, evitar intrusão, mas podemos manter estado mudo
+      // não autoplay
+    }
+  });
+
+  // Registrar service worker após carregamento completo
+  window.addEventListener('load', () => {
+    registerServiceWorker();
+    // Pré-carregar metadados de áudio manter primeiro slide com pré-carga
+    if (audioElements.length) {
+      audioElements.forEach(el => {
+        if (el.audio) el.audio.load();
+      });
+    }
+    // corrigir border radius para indicador
+    updatePageIndicator();
+  });
+</script>
+
+</body>
+</html>
