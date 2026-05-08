@@ -152,27 +152,26 @@
     
     /* Info da música atual — agora no CANTO INFERIOR ESQUERDO, sem text-shadow */
     .now-playing {
-      position: fixed;
-      bottom: 30px;
-      left: 16px;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-family: system-ui, sans-serif;
-      font-weight: 500;
-      color: #ffcd7e;
-      z-index: 100;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-      letter-spacing: 0.3px;
-      /* REMOVIDO text-shadow que criava a "sombra" atrás da letra */
-      text-shadow: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
+  position: fixed;
+  bottom: 20px;
+  left: 16px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  color: #ffcd7e;
+  z-index: 100;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  letter-spacing: 0.2px;
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
     
     .now-playing.visible {
       opacity: 1;
