@@ -2,21 +2,21 @@
   "name": "Equilíbrio Distante",
   "short_name": "Equilíbrio Distante",
   "description": "Álbum solo de Renato Russo, lançado em dezembro de 1995. O disco é inteiramente composto por regravações de canções clássicas e populares em italiano.",
-  "start_url": "/equilibriodistante/index.html",
-  "scope": "/equilibriodistante/",
+  "start_url": "/equilibrio/index.html",
+  "scope": "/equilibrio/",
   "display": "fullscreen",
   "orientation": "landscape",
   "theme_color": "#fefbea",
   "background_color": "#fefbea",
   "icons": [
     {
-      "src": "/equilibriodistante/icon-192.png",
+      "src": "/equilibrio/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/equilibriodistante/icon-512.png",
+      "src": "/equilibrio/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
