@@ -1,4 +1,4 @@
-const CACHE_VERSION = '08.05.2026-0932';
+const CACHE_VERSION = '08.05.2026-1012';
 const CACHE_STATIC  = `gente-static-${CACHE_VERSION}`;
 const CACHE_MP3     = `gente-mp3-${CACHE_VERSION}`;
 const BASE          = '/equilibrio';
@@ -24,6 +24,7 @@ const STATIC_ASSETS = [
   BASE + '/encartes/encarte13.webp',
   BASE + '/encartes/encarte14.webp',
   BASE + '/encartes/encarte15.webp',
+  BASE + '/encartes/encarte16.webp',
 ];
 
 // Instalação: cacheia assets estáticos
