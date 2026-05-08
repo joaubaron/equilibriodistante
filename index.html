@@ -219,6 +219,19 @@
     btn.textContent = "⏸";
     btn.classList.add("playing");
 
+    // ── BARRA DE PROGRESSO CORRIGIDA ──
+    const slide = btn.closest(".slide");
+    const fill = slide.querySelector(".progress-bar-fill");
+    if (fill) {
+      fill.style.width = "0%";
+      const updateProgress = () => {
+        if (audio.duration && !isNaN(audio.duration)) {
+          fill.style.width = (audio.currentTime / audio.duration * 100) + "%";
+        }
+      };
+      audio.addEventListener("timeupdate", updateProgress);
+    }
+
     audio.play().catch(err => {
       console.warn("Não foi possível tocar:", err);
       btn.textContent = "▶";
@@ -228,18 +241,9 @@
     audio.onended = () => {
       btn.textContent = "▶";
       btn.classList.remove("playing");
+      if (fill) fill.style.width = "0%";
       playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
     };
-
-    // ── Atualiza barra de progresso ──
-    const fill = btn.closest(".slide").querySelector(".progress-bar-fill");
-    if (fill) {
-      audio.addEventListener("timeupdate", () => {
-        if (audio.duration) {
-          fill.style.width = (audio.currentTime / audio.duration * 100) + "%";
-        }
-      });
-    }
   }
 
   const carousel = document.getElementById("carousel");
@@ -303,7 +307,7 @@
         div.appendChild(ctrl);
       });
 
-      // ── Barra de progresso ──
+      // ── BARRA DE PROGRESSO ──
       const progressContainer = document.createElement("div");
       progressContainer.className = "progress-bar-container";
       const progressFill = document.createElement("div");
