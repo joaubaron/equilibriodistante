@@ -1,1 +1,1 @@
-https://joaubaron.github.io/equilibriodistante/home.html
+https://joaubaron.github.io/equilibrio/home.html
