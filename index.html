@@ -149,6 +149,31 @@
       background: #ffcd7e;
       transition: width 0.1s linear;
     }
+    
+    /* Info da música atual */
+    .now-playing {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      color: #ffcd7e;
+      font-family: system-ui, sans-serif;
+      z-index: 100;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      letter-spacing: 0.5px;
+    }
+    
+    .now-playing.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -156,12 +181,14 @@
 <div class="carousel" id="carousel"></div>
 <div class="page-indicator" id="pageIndicator">1 / 16</div>
 
-<!-- Apenas a barra de progresso global fixa -->
+<!-- Barra de progresso global fixa -->
 <div class="global-progress-bar" id="globalProgressBar">
   <div class="global-progress-fill" id="globalProgressFill"></div>
 </div>
+<div class="now-playing" id="nowPlaying"></div>
 
 <script>
+  // side: "left" | "right" | null (sem botão)
   const SLIDES = [
     { img: "encarte1.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
     { img: "encarte2.webp",  tracks: [],                                                         labels: [],                                    sides: [] },
@@ -193,8 +220,10 @@
     lbl: null
   };
 
+  // Elementos globais
   const globalProgressFill = document.getElementById("globalProgressFill");
   const globalProgressBar = document.getElementById("globalProgressBar");
+  const nowPlayingDiv = document.getElementById("nowPlaying");
 
   function stopAll() {
     if (playing.audio) {
@@ -210,6 +239,10 @@
     playing.slideIndex = -1;
     playing.trackIndex = 0;
     playing.lbl = null;
+    
+    // Esconde o "now playing"
+    nowPlayingDiv.classList.remove("visible");
+    nowPlayingDiv.textContent = "";
     globalProgressFill.style.width = "0%";
   }
 
@@ -222,14 +255,22 @@
     const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
     playing = { slideIndex, trackIndex, audio, btn, lbl };
 
-    if (lbl) lbl.textContent = s.labels[trackIndex] || s.tracks[trackIndex];
+    if (lbl) {
+      const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
+      lbl.textContent = trackName;
+      // Mostra no fixed footer
+      nowPlayingDiv.textContent = `🎵 ${trackName}`;
+      nowPlayingDiv.classList.add("visible");
+    }
+    
     btn.textContent = "⏸";
     btn.classList.add("playing");
 
+    // Atualiza barra de progresso global
     globalProgressFill.style.width = "0%";
     
     const updateProgress = () => {
-      if (audio.duration && !isNaN(audio.duration)) {
+      if (audio.duration && !isNaN(audio.duration) && audio.currentTime) {
         globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%";
       }
     };
@@ -240,16 +281,19 @@
       console.warn("Não foi possível tocar:", err);
       btn.textContent = "▶";
       btn.classList.remove("playing");
+      nowPlayingDiv.classList.remove("visible");
     });
 
     audio.onended = () => {
       btn.textContent = "▶";
       btn.classList.remove("playing");
       globalProgressFill.style.width = "0%";
+      nowPlayingDiv.classList.remove("visible");
       playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
     };
   }
 
+  // Função de seek na barra global
   function seekAudio(e) {
     if (!playing.audio || !playing.audio.duration) return;
     
