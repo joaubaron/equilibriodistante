@@ -56,22 +56,14 @@
       -webkit-user-drag: none;
     }
 
-    /* Controle de áudio — minimalista */
     .audio-control {
       position: absolute;
       top: 55px;
       z-index: 30;
     }
 
-    /* Lado esquerdo */
-    .audio-control.left {
-      left: 16px;
-    }
-
-    /* Lado direito */
-    .audio-control.right {
-      right: 16px;
-    }
+    .audio-control.left { left: 16px; }
+    .audio-control.right { right: 16px; }
 
     .play-pause-btn {
       background: rgba(0, 0, 0, 0.65);
@@ -88,14 +80,12 @@
       flex-shrink: 0;
       transition: transform 0.1s, background 0.15s;
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
     }
-    .play-pause-btn:active  { transform: scale(0.90); }
+    .play-pause-btn:active { transform: scale(0.90); }
     .play-pause-btn.playing { background: rgba(255, 205, 126, 0.25); }
 
     .track-name { display: none; }
 
-    /* Indicador de página */
     .page-indicator {
       position: fixed;
       bottom: 22px;
@@ -109,7 +99,6 @@
       padding: 4px 14px;
       border-radius: 30px;
       backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
       pointer-events: none;
       letter-spacing: 1px;
     }
@@ -131,7 +120,6 @@
       font-family: system-ui, sans-serif;
     }
 
-    /* ── BARRA DE PROGRESSO GLOBAL FIXA ── */
     .global-progress-bar {
       position: fixed;
       bottom: 0;
@@ -150,50 +138,44 @@
       transition: width 0.1s linear;
     }
     
-    /* Info da música atual — agora no CANTO INFERIOR ESQUERDO, sem text-shadow */
     .now-playing {
-  position: fixed;
-  bottom: 20px;
-  left: 16px;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-family: system-ui, sans-serif;
-  font-weight: 500;
-  color: #ffcd7e;
-  z-index: 100;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-  letter-spacing: 0.2px;
-  text-shadow: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-    
-      .now-playing.visible {
-      opacity: 1;
+      position: fixed;
+      bottom: 20px;
+      left: 16px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: system-ui, sans-serif;
+      font-weight: 500;
+      color: #ffcd7e;
+      z-index: 100;
+      white-space: nowrap;
+      pointer-events: auto;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-shadow: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
     }
+    
+    .now-playing.visible { opacity: 1; }
+    .now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.85); }
     .now-playing-icon { color: #ffcd7e; }
     .now-playing-text { color: #ffcd7e; }
-    
   </style>
 </head>
 <body>
 
 <div class="carousel" id="carousel"></div>
 <div class="page-indicator" id="pageIndicator">1 / 16</div>
-
-<!-- Barra de progresso global fixa -->
 <div class="global-progress-bar" id="globalProgressBar">
   <div class="global-progress-fill" id="globalProgressFill"></div>
 </div>
 <div class="now-playing" id="nowPlaying"></div>
 
 <script>
-  // side: "left" | "right" | null (sem botão)
   const SLIDES = [
     { img: "encarte1.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
     { img: "encarte2.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
@@ -215,20 +197,24 @@
 
   const IMG_BASE = "./encartes/";
   const MP3_BASE = "./mp3/";
-  const TOTAL    = SLIDES.length;
+  const TOTAL = SLIDES.length;
 
-  let playing = {
-    slideIndex: -1,
-    trackIndex: 0,
-    audio: null,
-    btn: null,
-    lbl: null
-  };
-
-  // Elementos globais
+  let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
   const globalProgressFill = document.getElementById("globalProgressFill");
   const globalProgressBar = document.getElementById("globalProgressBar");
   const nowPlayingDiv = document.getElementById("nowPlaying");
+  const carousel = document.getElementById("carousel");
+
+  // Função para rolar até um slide
+  function scrollToSlide(slideIndex) {
+    if (slideIndex < 0 || slideIndex >= TOTAL) return;
+    carousel.scrollTo({ left: slideIndex * carousel.clientWidth, behavior: "smooth" });
+  }
+
+  // Clique no now-playing: vai para o slide da música
+  nowPlayingDiv.addEventListener("click", () => {
+    if (playing.slideIndex >= 0) scrollToSlide(playing.slideIndex);
+  });
 
   function stopAll() {
     if (playing.audio) {
@@ -244,8 +230,6 @@
     playing.slideIndex = -1;
     playing.trackIndex = 0;
     playing.lbl = null;
-    
-    // Esconde o "now playing"
     nowPlayingDiv.classList.remove("visible");
     nowPlayingDiv.textContent = "";
     globalProgressFill.style.width = "0%";
@@ -254,24 +238,18 @@
   function playTrack(slideIndex, trackIndex, btn, lbl) {
     const s = SLIDES[slideIndex];
     if (!s.tracks.length || trackIndex >= s.tracks.length) return;
-
     stopAll();
 
     const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
     playing = { slideIndex, trackIndex, audio, btn, lbl };
 
-    if (lbl) {
-      const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
-      lbl.textContent = trackName;
-      // Mostra no fixed footer — agora no canto inferior esquerdo
-      nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
-      nowPlayingDiv.classList.add("visible");
-    }
+    const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
+    lbl.textContent = trackName;
+    nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
+    nowPlayingDiv.classList.add("visible");
     
     btn.textContent = "⏸";
     btn.classList.add("playing");
-
-    // Atualiza barra de progresso global
     globalProgressFill.style.width = "0%";
     
     const updateProgress = () => {
@@ -279,16 +257,12 @@
         globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%";
       }
     };
-    
     audio.addEventListener("timeupdate", updateProgress);
-
     audio.play().catch(err => {
-      console.warn("Não foi possível tocar:", err);
       btn.textContent = "▶";
       btn.classList.remove("playing");
       nowPlayingDiv.classList.remove("visible");
     });
-
     audio.onended = () => {
       btn.textContent = "▶";
       btn.classList.remove("playing");
@@ -298,10 +272,8 @@
     };
   }
 
-  // Função de seek na barra global
   function seekAudio(e) {
     if (!playing.audio || !playing.audio.duration) return;
-    
     const rect = globalProgressBar.getBoundingClientRect();
     const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
     const ratio = Math.max(0, Math.min(1, x / rect.width));
@@ -310,23 +282,17 @@
 
   globalProgressBar.addEventListener("mousedown", seekAudio);
   globalProgressBar.addEventListener("touchstart", seekAudio, { passive: true });
-  globalProgressBar.addEventListener("mousemove", e => { 
-    if (e.buttons === 1 && playing.audio) seekAudio(e); 
-  });
+  globalProgressBar.addEventListener("mousemove", e => { if (e.buttons === 1 && playing.audio) seekAudio(e); });
   globalProgressBar.addEventListener("touchmove", seekAudio, { passive: true });
 
-  const carousel = document.getElementById("carousel");
-
+  // Construir slides
   SLIDES.forEach((s, i) => {
     const div = document.createElement("div");
     div.className = "slide";
-    div.dataset.index = i;
-
     const img = document.createElement("img");
     img.src = IMG_BASE + s.img;
     img.alt = s.labels[0] || `Encarte ${i + 1}`;
     img.draggable = false;
-
     img.onerror = () => {
       if (img.dataset.fallback) return;
       img.dataset.fallback = "1";
@@ -335,54 +301,44 @@
       fb.textContent = s.labels[0] ? `🎵 ${s.labels[0]}` : `Encarte ${i + 1}`;
       div.appendChild(fb);
     };
-
     div.appendChild(img);
 
     if (s.tracks.length) {
       s.tracks.forEach((track, tIdx) => {
         const side = s.sides[tIdx] || "left";
-
         const ctrl = document.createElement("div");
         ctrl.className = `audio-control ${side}`;
-
         const btn = document.createElement("button");
         btn.className = "play-pause-btn";
         btn.textContent = "▶";
-        btn.setAttribute("aria-label", "Tocar / Pausar");
-
         const lbl = document.createElement("span");
         lbl.className = "track-name";
         lbl.textContent = s.labels[tIdx] || track;
-
         btn.addEventListener("click", e => {
           e.stopPropagation();
           if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
             if (playing.audio.paused) {
-  playing.audio.play();
-  btn.textContent = "⏸";
-  btn.classList.add("playing");
-  // Mostra o nome da música ao dar play
-  const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
-  nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
-  nowPlayingDiv.classList.add("visible");
-} else {
-  playing.audio.pause();
-  btn.textContent = "▶";
-  btn.classList.remove("playing");
-  // Esconde ao pausar
-  nowPlayingDiv.classList.remove("visible");
-}
+              playing.audio.play();
+              btn.textContent = "⏸";
+              btn.classList.add("playing");
+              const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
+              nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
+              nowPlayingDiv.classList.add("visible");
+            } else {
+              playing.audio.pause();
+              btn.textContent = "▶";
+              btn.classList.remove("playing");
+              nowPlayingDiv.classList.remove("visible");
+            }
           } else {
             playTrack(i, tIdx, btn, lbl);
           }
         });
-
         ctrl.appendChild(btn);
         ctrl.appendChild(lbl);
         div.appendChild(ctrl);
       });
     }
-
     carousel.appendChild(div);
   });
 
