@@ -1,4 +1,4 @@
-const CACHE_VERSION = '08.05.2026-2139';
+const CACHE_VERSION = '09.05.2026-0824';
 const CACHE_STATIC  = `gente-static-${CACHE_VERSION}`;
 const CACHE_MP3     = `gente-mp3-${CACHE_VERSION}`;
 const BASE          = '/equilibrio';
