@@ -205,6 +205,40 @@
   const nowPlayingDiv = document.getElementById("nowPlaying");
   const carousel = document.getElementById("carousel");
 
+  // --- WakeLock ---
+  let wakeLock = null;
+
+  async function acquireWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  }
+
+  // --- Reprodução contínua ---
+  function playNext() {
+    const nextTrack = playing.trackIndex + 1;
+    if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
+      const slide = carousel.children[playing.slideIndex];
+      const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
+      const lbl = slide.querySelectorAll('.track-name')[nextTrack];
+      playTrack(playing.slideIndex, nextTrack, btn, lbl);
+    } else {
+      for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
+        if (SLIDES[i].tracks.length) {
+          scrollToSlide(i);
+          const slide = carousel.children[i];
+          playTrack(i, 0, slide.querySelector('.play-pause-btn'), slide.querySelector('.track-name'));
+          return;
+        }
+      }
+      stopAll();
+    }
+  }
+
   // Função para rolar até um slide
   function scrollToSlide(slideIndex) {
     if (slideIndex < 0 || slideIndex >= TOTAL) return;
@@ -233,6 +267,7 @@
     nowPlayingDiv.classList.remove("visible");
     nowPlayingDiv.textContent = "";
     globalProgressFill.style.width = "0%";
+    releaseWakeLock();
   }
 
   function playTrack(slideIndex, trackIndex, btn, lbl) {
@@ -251,7 +286,29 @@
     btn.textContent = "⏸";
     btn.classList.add("playing");
     globalProgressFill.style.width = "0%";
-    
+
+    acquireWakeLock();
+
+    // --- MediaSession ---
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackName, artist: 'Renato Russo', album: 'Equilíbrio Distante'
+      });
+      navigator.mediaSession.setActionHandler('play', () => {
+        playing.audio.play();
+        playing.btn.textContent = '⏸';
+        playing.btn.classList.add('playing');
+        nowPlayingDiv.classList.add('visible');
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        playing.audio.pause();
+        playing.btn.textContent = '▶';
+        playing.btn.classList.remove('playing');
+        nowPlayingDiv.classList.remove('visible');
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', playNext);
+    }
+
     const updateProgress = () => {
       if (audio.duration && !isNaN(audio.duration) && audio.currentTime) {
         globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%";
@@ -263,13 +320,7 @@
       btn.classList.remove("playing");
       nowPlayingDiv.classList.remove("visible");
     });
-    audio.onended = () => {
-      btn.textContent = "▶";
-      btn.classList.remove("playing");
-      globalProgressFill.style.width = "0%";
-      nowPlayingDiv.classList.remove("visible");
-      playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
-    };
+    audio.onended = playNext;
   }
 
   function seekAudio(e) {
