@@ -399,15 +399,6 @@
     pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
   }, { passive: true });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden && playing.audio) {
-      playing.audio.pause();
-      if (playing.btn) {
-        playing.btn.textContent = "▶";
-        playing.btn.classList.remove("playing");
-      }
-    }
-  });
 
   const hint = document.createElement("div");
   hint.className = "swipe-hint";
