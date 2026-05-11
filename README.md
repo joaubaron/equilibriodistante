@@ -71,7 +71,7 @@ Exemplo:
 
 Hospede no:
 
-[GitHub Pages](https://pages.github.com/?utm_source=chatgpt.com)
+[GitHub Pages] https://joaubaron.github.io/equilibrio/
 
 Depois:
 1. Abra no Chrome
