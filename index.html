@@ -219,23 +219,29 @@ if (wakeLock) { wakeLock.release(); wakeLock = null; }
 
 // --- Reprodução contínua ---
 function playNext() {
-const nextTrack = playing.trackIndex + 1;
-if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
-const slide = carousel.children[playing.slideIndex];
-const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
-const lbl = slide.querySelectorAll('.track-name')[nextTrack];
-playTrack(playing.slideIndex, nextTrack, btn, lbl);
-} else {
-for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
-if (SLIDES[i].tracks.length) {
-scrollToSlide(i);
-const slide = carousel.children[i];
-playTrack(i, 0, slide.querySelector('.play-pause-btn'), slide.querySelector('.track-name'));
-return;
-}
-}
-stopAll();
-}
+    const nextTrack = playing.trackIndex + 1;
+    if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
+        // Mesmo slide, próxima faixa
+        const slide = carousel.children[playing.slideIndex];
+        const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
+        const lbl = slide.querySelectorAll('.track-name')[nextTrack];
+        playTrack(playing.slideIndex, nextTrack, btn, lbl);
+    } else {
+        // Procura próximo slide com música
+        for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
+            if (SLIDES[i].tracks.length) {
+                // Rola para o slide ANTES de tocar
+                scrollToSlide(i);
+                // Pequeno delay para garantir que o scroll terminou
+                setTimeout(() => {
+                    const slide = carousel.children[i];
+                    playTrack(i, 0, slide.querySelector('.play-pause-btn'), slide.querySelector('.track-name'));
+                }, 150);
+                return;
+            }
+        }
+        stopAll();
+    }
 }
 
 // Função para rolar até um slide
