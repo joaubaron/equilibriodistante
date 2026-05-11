@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="description" content="Álbum solo de Renato Russo, lançado em dezembro de 1995. O disco é inteiramente composto por regravações de canções clássicas e populares em italiano.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Equilibrio distante</title>
+<title>Equilibrio Distante | Toca-Discos Vintage</title>
 <meta name="theme-color" content="#fefbea">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -56,6 +56,119 @@ pointer-events: none;
 -webkit-user-drag: none;
 }
 
+/* --- Toca-Discos Vintage --- */
+.record-player {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 100px;
+  height: 100px;
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.record-player:hover {
+  opacity: 1;
+}
+
+/* Braço do toca-discos - SVG elegante */
+.tonearm-svg {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 92px;
+  height: 92px;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.5));
+  transition: transform 0.65s cubic-bezier(0.34, 1.2, 0.55, 1);
+  transform-origin: 48px 78px;
+}
+
+/* Quando está tocando, o braço se inclina sobre o "disco" */
+.record-player.playing .tonearm-svg {
+  transform: rotate(-32deg);
+}
+
+/* Base do toca-discos (estilo vinil) */
+.record-base {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 52px;
+  height: 52px;
+  background: radial-gradient(circle at 35% 35%, #d4b48c, #8b6942, #5a3e1f);
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), inset 0 1px 3px rgba(255,245,200,0.5);
+  border: 1px solid #f0d498;
+  z-index: 26;
+}
+
+.record-base::after {
+  content: "♫";
+  position: absolute;
+  font-size: 20px;
+  color: #ffefb9;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 1px 2px black;
+  opacity: 0.7;
+  font-weight: bold;
+}
+
+/* Linhas de vinil decorativas com animação de rotação */
+.vinyl-lines {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at 50% 50%, 
+    rgba(0,0,0,0) 0px, 
+    rgba(0,0,0,0) 4px,
+    rgba(0,0,0,0.2) 4px,
+    rgba(0,0,0,0.2) 8px);
+  pointer-events: none;
+  z-index: 27;
+}
+
+/* Animação suave do vinil quando toca */
+@keyframes vinylSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.record-player.playing .vinyl-lines {
+  animation: vinylSpin 8s linear infinite;
+}
+
+/* Luz de LED indicadora (efeito vintage) */
+.led-indicator {
+  position: absolute;
+  bottom: 42px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  background: #ffaa44;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #ffcc66;
+  z-index: 28;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.record-player.playing .led-indicator {
+  opacity: 1;
+  animation: ledPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ledPulse {
+  0%, 100% { box-shadow: 0 0 2px #ffaa44; opacity: 0.5; }
+  50% { box-shadow: 0 0 10px #ffdd88; opacity: 1; }
+}
+
 .audio-control {
 position: absolute;
 top: 55px;
@@ -66,25 +179,27 @@ z-index: 30;
 .audio-control.right { right: 16px; }
 
 .play-pause-btn {
-background: rgba(0, 0, 0, 0.65);
-border: 1.5px solid #ffcd7e;
-width: 36px;
-height: 36px;
+background: rgba(0, 0, 0, 0.7);
+border: 2px solid #ffcd7e;
+width: 42px;
+height: 42px;
 border-radius: 50%;
 display: flex;
 align-items: center;
 justify-content: center;
-font-size: 14px;
+font-size: 16px;
 cursor: pointer;
 color: #ffcd7e;
 flex-shrink: 0;
-transition: transform 0.1s, background 0.15s;
-backdrop-filter: blur(8px);
+transition: transform 0.1s, background 0.2s, border-color 0.2s;
+backdrop-filter: blur(10px);
 }
-.play-pause-btn:active { transform: scale(0.90); }
-.play-pause-btn.playing { background: rgba(255, 205, 126, 0.25); }
+.play-pause-btn:active { transform: scale(0.92); background: rgba(0,0,0,0.85); }
+.play-pause-btn.playing { background: rgba(255, 205, 126, 0.3); border-color: #ffe0a0; box-shadow: 0 0 8px rgba(255,205,126,0.4); }
 
-.track-name { display: none; }
+.track-name { 
+  display: none;
+}
 
 .page-indicator {
 position: fixed;
@@ -92,32 +207,35 @@ bottom: 22px;
 left: 50%;
 transform: translateX(-50%);
 z-index: 20;
-font-size: 12px;
-font-family: monospace;
-color: rgba(255, 240, 200, 0.85);
-background: rgba(0, 0, 0, 0.5);
-padding: 4px 14px;
-border-radius: 30px;
-backdrop-filter: blur(4px);
+font-size: 13px;
+font-family: 'Courier New', monospace;
+color: rgba(255, 240, 200, 0.9);
+background: rgba(0, 0, 0, 0.6);
+padding: 5px 18px;
+border-radius: 40px;
+backdrop-filter: blur(5px);
 pointer-events: none;
-letter-spacing: 1px;
+letter-spacing: 2px;
+font-weight: 500;
 }
 
 .swipe-hint {
 position: fixed;
 top: 55px;
-left: 8rem;
-background: rgba(0,0,0,0.55);
-border-radius: 30px;
-padding: 5px 13px;
-font-size: 11px;
+left: 50%;
+transform: translateX(-50%);
+background: rgba(0,0,0,0.6);
+border-radius: 40px;
+padding: 6px 18px;
+font-size: 12px;
 color: #ffe0a3;
 pointer-events: none;
-backdrop-filter: blur(5px);
+backdrop-filter: blur(6px);
 z-index: 40;
 font-weight: 500;
 transition: opacity 1s;
 font-family: system-ui, sans-serif;
+white-space: nowrap;
 }
 
 .global-progress-bar {
@@ -125,8 +243,8 @@ position: fixed;
 bottom: 0;
 left: 0;
 width: 100%;
-height: 10px;
-background: rgba(255, 205, 126, 0.2);
+height: 8px;
+background: rgba(255, 205, 126, 0.25);
 cursor: pointer;
 z-index: 100;
 }
@@ -134,19 +252,20 @@ z-index: 100;
 .global-progress-fill {
 height: 100%;
 width: 0%;
-background: #ffcd7e;
+background: linear-gradient(90deg, #ffcd7e, #ffdd9e);
 transition: width 0.1s linear;
+box-shadow: 0 0 4px #ffcd7e;
 }
 
 .now-playing {
 position: fixed;
 bottom: 20px;
 left: 16px;
-background: rgba(0,0,0,0.7);
-backdrop-filter: blur(8px);
-padding: 4px 10px;
-border-radius: 20px;
-font-size: 11px;
+background: rgba(0,0,0,0.75);
+backdrop-filter: blur(12px);
+padding: 6px 14px;
+border-radius: 40px;
+font-size: 12px;
 font-family: system-ui, sans-serif;
 font-weight: 500;
 color: #ffcd7e;
@@ -154,16 +273,17 @@ z-index: 100;
 white-space: nowrap;
 pointer-events: auto;
 opacity: 0;
-transition: opacity 0.3s;
+transition: opacity 0.3s, transform 0.1s;
 text-shadow: none;
-box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+box-shadow: 0 2px 12px rgba(0,0,0,0.4);
 cursor: pointer;
+border-left: 3px solid #ffcd7e;
 }
 
 .now-playing.visible { opacity: 1; }
-.now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.85); }
-.now-playing-icon { color: #ffcd7e; }
-.now-playing-text { color: #ffcd7e; }
+.now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.88); }
+.now-playing-icon { color: #ffcd7e; margin-right: 6px; }
+.now-playing-text { color: #ffefc0; }
 </style>
 </head>
 <body>
@@ -198,7 +318,7 @@ const IMG_BASE = "./encartes/";
 const MP3_BASE = "./mp3/";
 const TOTAL = SLIDES.length;
 
-let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
+let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null, recordPlayer: null };
 const globalProgressFill = document.getElementById("globalProgressFill");
 const globalProgressBar = document.getElementById("globalProgressBar");
 const nowPlayingDiv = document.getElementById("nowPlaying");
@@ -209,7 +329,7 @@ let wakeLock = null;
 
 async function acquireWakeLock() {
 if ('wakeLock' in navigator) {
-try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) { console.log("wake lock error:", e); }
 }
 }
 
@@ -217,7 +337,7 @@ function releaseWakeLock() {
 if (wakeLock) { wakeLock.release(); wakeLock = null; }
 }
 
-// --- Reprodução contínua ---
+// --- Play Next ---
 function playNext() {
 const nextTrack = playing.trackIndex + 1;
 if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
@@ -238,13 +358,11 @@ stopAll();
 }
 }
 
-// Função para rolar até um slide
 function scrollToSlide(slideIndex) {
 if (slideIndex < 0 || slideIndex >= TOTAL) return;
 carousel.scrollTo({ left: slideIndex * carousel.clientWidth, behavior: "smooth" });
 }
 
-// Clique no now-playing: vai para o slide da música
 nowPlayingDiv.addEventListener("click", () => {
 if (playing.slideIndex >= 0) scrollToSlide(playing.slideIndex);
 });
@@ -259,6 +377,10 @@ if (playing.btn) {
 playing.btn.textContent = "▶";
 playing.btn.classList.remove("playing");
 playing.btn = null;
+}
+if (playing.recordPlayer) {
+playing.recordPlayer.classList.remove("playing");
+playing.recordPlayer = null;
 }
 playing.slideIndex = -1;
 playing.trackIndex = 0;
@@ -275,35 +397,55 @@ if (!s.tracks.length || trackIndex >= s.tracks.length) return;
 stopAll();
 
 const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
-playing = { slideIndex, trackIndex, audio, btn, lbl };
+
+// Encontra o elemento do toca-discos no slide atual
+const currentSlide = carousel.children[slideIndex];
+const recordPlayerElement = currentSlide.querySelector('.record-player');
+
+playing = { 
+  slideIndex, 
+  trackIndex, 
+  audio, 
+  btn, 
+  lbl, 
+  recordPlayer: recordPlayerElement 
+};
 
 const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
-lbl.textContent = trackName;
+if (lbl) lbl.textContent = trackName;
 nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
 nowPlayingDiv.classList.add("visible");
-
 btn.textContent = "⏸";
 btn.classList.add("playing");
-globalProgressFill.style.width = "0%";
 
+// Ativa a animação do toca-discos
+if (recordPlayerElement) {
+recordPlayerElement.classList.add("playing");
+}
+
+globalProgressFill.style.width = "0%";
 acquireWakeLock();
 
-// --- MediaSession ---
+// MediaSession API
 if ('mediaSession' in navigator) {
 navigator.mediaSession.metadata = new MediaMetadata({
 title: trackName, artist: 'Renato Russo', album: 'Equilíbrio Distante'
 });
 navigator.mediaSession.setActionHandler('play', () => {
+if (playing.audio) {
 playing.audio.play();
-playing.btn.textContent = '⏸';
-playing.btn.classList.add('playing');
+if (playing.btn) { playing.btn.textContent = '⏸'; playing.btn.classList.add('playing'); }
+if (playing.recordPlayer) playing.recordPlayer.classList.add('playing');
 nowPlayingDiv.classList.add('visible');
+}
 });
 navigator.mediaSession.setActionHandler('pause', () => {
+if (playing.audio) {
 playing.audio.pause();
-playing.btn.textContent = '▶';
-playing.btn.classList.remove('playing');
+if (playing.btn) { playing.btn.textContent = '▶'; playing.btn.classList.remove('playing'); }
+if (playing.recordPlayer) playing.recordPlayer.classList.remove('playing');
 nowPlayingDiv.classList.remove('visible');
+}
 });
 navigator.mediaSession.setActionHandler('nexttrack', playNext);
 }
@@ -315,8 +457,10 @@ globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%
 };
 audio.addEventListener("timeupdate", updateProgress);
 audio.play().catch(err => {
+console.log("Autoplay bloqueado:", err);
 btn.textContent = "▶";
 btn.classList.remove("playing");
+if (recordPlayerElement) recordPlayerElement.classList.remove("playing");
 nowPlayingDiv.classList.remove("visible");
 });
 audio.onended = playNext;
@@ -335,7 +479,7 @@ globalProgressBar.addEventListener("touchstart", seekAudio, { passive: true });
 globalProgressBar.addEventListener("mousemove", e => { if (e.buttons === 1 && playing.audio) seekAudio(e); });
 globalProgressBar.addEventListener("touchmove", seekAudio, { passive: true });
 
-// Construir slides
+// --- Construir slides com o Toca-Discos Vintage ---
 SLIDES.forEach((s, i) => {
 const div = document.createElement("div");
 div.className = "slide";
@@ -347,12 +491,47 @@ img.onerror = () => {
 if (img.dataset.fallback) return;
 img.dataset.fallback = "1";
 const fb = document.createElement("div");
-fb.style.cssText = "position:absolute;color:#e2c28b;font-size:1.4rem;text-align:center;font-weight:bold;";
+fb.style.cssText = "position:absolute;color:#e2c28b;font-size:1.4rem;text-align:center;font-weight:bold;background:rgba(0,0,0,0.5);padding:12px;border-radius:20px;";
 fb.textContent = s.labels[0] ? `🎵 ${s.labels[0]}` : `Encarte ${i + 1}`;
 div.appendChild(fb);
 };
 div.appendChild(img);
 
+// -- Adiciona o Toca-Discos Vintage a CADA slide (mesmo sem música, fica decorativo) --
+const recordPlayer = document.createElement("div");
+recordPlayer.className = "record-player";
+recordPlayer.innerHTML = `
+  <svg class="tonearm-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Braço principal -->
+    <path d="M48,78 L22,38 Q18,32 24,30 L68,28 Q74,28 72,34 L54,78" 
+          fill="url(#tonearmGrad)" stroke="#aa8833" stroke-width="1.2" stroke-linejoin="round"/>
+    <!-- Contrapeso -->
+    <circle cx="58" cy="72" r="4" fill="#665533" stroke="#aa8844" stroke-width="0.8"/>
+    <!-- Cápsula (agulha) -->
+    <rect x="20" y="34" width="8" height="5" rx="1" fill="#ccaa66" transform="rotate(-15 24 36)"/>
+    <circle cx="22" cy="39" r="1.5" fill="#ffdd99"/>
+    <!-- Eixo/pivô -->
+    <circle cx="48" cy="78" r="7" fill="url(#pivotGrad)" stroke="#ccaa66" stroke-width="1"/>
+    <circle cx="48" cy="78" r="2.5" fill="#f0d090"/>
+    <defs>
+      <linearGradient id="tonearmGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#dbb87a"/>
+        <stop offset="50%" stop-color="#b8945c"/>
+        <stop offset="100%" stop-color="#8a6940"/>
+      </linearGradient>
+      <radialGradient id="pivotGrad" cx="30%" cy="30%">
+        <stop offset="0%" stop-color="#eecd90"/>
+        <stop offset="100%" stop-color="#997750"/>
+      </radialGradient>
+    </defs>
+  </svg>
+  <div class="record-base"></div>
+  <div class="vinyl-lines"></div>
+  <div class="led-indicator"></div>
+`;
+div.appendChild(recordPlayer);
+
+// Botões de áudio
 if (s.tracks.length) {
 s.tracks.forEach((track, tIdx) => {
 const side = s.sides[tIdx] || "left";
@@ -371,6 +550,7 @@ if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
     playing.audio.play();
     btn.textContent = "⏸";
     btn.classList.add("playing");
+    if (playing.recordPlayer) playing.recordPlayer.classList.add("playing");
     const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
     nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
     nowPlayingDiv.classList.add("visible");
@@ -378,6 +558,7 @@ if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
     playing.audio.pause();
     btn.textContent = "▶";
     btn.classList.remove("playing");
+    if (playing.recordPlayer) playing.recordPlayer.classList.remove("playing");
     nowPlayingDiv.classList.remove("visible");
   }
 } else {
@@ -392,22 +573,24 @@ div.appendChild(ctrl);
 carousel.appendChild(div);
 });
 
+// Page indicator
 const pageIndicator = document.getElementById("pageIndicator");
 carousel.addEventListener("scroll", () => {
 const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
 pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
 }, { passive: true });
 
-
+// Swipe hint
 const hint = document.createElement("div");
 hint.className = "swipe-hint";
-hint.innerHTML = "◀ deslize ▶";
+hint.innerHTML = "◀ deslize para virar as páginas ▶";
 document.body.appendChild(hint);
 setTimeout(() => {
 hint.style.opacity = "0";
-setTimeout(() => hint.remove(), 1000);
-}, 5000);
+setTimeout(() => hint.remove(), 1200);
+}, 4500);
 
+// Service Worker
 if ("serviceWorker" in navigator) {
 window.addEventListener("load", () => {
 navigator.serviceWorker.register("/equilibrio/sw.js")
