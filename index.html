@@ -164,6 +164,39 @@ cursor: pointer;
 .now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.85); }
 .now-playing-icon { color: #ffcd7e; }
 .now-playing-text { color: #ffcd7e; }
+
+@keyframes spin-vinyl {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.cd-spinner {
+  position: fixed;
+  bottom: 54px;
+  right: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+  animation: spin-vinyl 3s linear infinite;
+  animation-play-state: paused;
+}
+.cd-spinner img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+.cd-spinner.visible {
+  opacity: 1;
+  pointer-events: none;
+}
+.cd-spinner.spinning {
+  animation-play-state: running;
+}
 </style>
 </head>
 <body>
@@ -174,6 +207,7 @@ cursor: pointer;
 <div class="global-progress-fill" id="globalProgressFill"></div>
 </div>
 <div class="now-playing" id="nowPlaying"></div>
+<div class="cd-spinner" id="cdSpinner"><img src="cd.png" alt=""></div>
 
 <script>
 const SLIDES = [
@@ -202,6 +236,7 @@ let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null
 const globalProgressFill = document.getElementById("globalProgressFill");
 const globalProgressBar = document.getElementById("globalProgressBar");
 const nowPlayingDiv = document.getElementById("nowPlaying");
+const cdSpinner = document.getElementById("cdSpinner");
 const carousel = document.getElementById("carousel");
 
 // --- WakeLock ---
@@ -266,6 +301,7 @@ playing.lbl = null;
 nowPlayingDiv.classList.remove("visible");
 nowPlayingDiv.textContent = "";
 globalProgressFill.style.width = "0%";
+cdSpinner.classList.remove("visible", "spinning");
 releaseWakeLock();
 }
 
@@ -287,6 +323,7 @@ btn.classList.add("playing");
 globalProgressFill.style.width = "0%";
 
 acquireWakeLock();
+cdSpinner.classList.add("visible", "spinning");
 
 // --- MediaSession ---
 if ('mediaSession' in navigator) {
@@ -298,12 +335,14 @@ playing.audio.play();
 playing.btn.textContent = '⏸';
 playing.btn.classList.add('playing');
 nowPlayingDiv.classList.add('visible');
+cdSpinner.classList.add('spinning');
 });
 navigator.mediaSession.setActionHandler('pause', () => {
 playing.audio.pause();
 playing.btn.textContent = '▶';
 playing.btn.classList.remove('playing');
 nowPlayingDiv.classList.remove('visible');
+cdSpinner.classList.remove('spinning');
 });
 navigator.mediaSession.setActionHandler('nexttrack', playNext);
 }
@@ -374,11 +413,13 @@ if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
     const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
     nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
     nowPlayingDiv.classList.add("visible");
+    cdSpinner.classList.add("spinning");
   } else {
     playing.audio.pause();
     btn.textContent = "▶";
     btn.classList.remove("playing");
     nowPlayingDiv.classList.remove("visible");
+    cdSpinner.classList.remove("spinning");
   }
 } else {
   playTrack(i, tIdx, btn, lbl);
