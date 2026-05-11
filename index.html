@@ -165,22 +165,6 @@ cursor: pointer;
 .now-playing-icon { color: #ffcd7e; }
 .now-playing-text { color: #ffcd7e; }
 
-/* CD VINIL ANIMADO - pequeno no canto inferior direito */
-.cd-vinyl {
-position: fixed;
-bottom: 20px;
-right: 20px;
-width: 48px;
-height: 48px;
-z-index: 200;
-cursor: pointer;
-border-radius: 50%;
-box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-transition: transform 0.2s ease, opacity 0.2s;
-opacity: 0;
-pointer-events: none;
-}
-
 .cd-vinyl.visible {
 opacity: 0.9;
 pointer-events: auto;
@@ -213,6 +197,36 @@ to {
 transform: rotate(360deg);
 }
 }
+
+/* Mantenha APENAS esta definição, remova a outra .cd-vinyl */
+.cd-vinyl {
+position: fixed;
+bottom: 20px;
+right: 20px;
+width: 48px;
+height: 48px;
+z-index: 200;
+cursor: pointer;
+border-radius: 50%;
+box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+transition: transform 0.2s ease, opacity 0.2s;
+opacity: 0;
+pointer-events: none;
+/* O overlay é absoluto em relação a este fixed */
+}
+
+.cd-vinyl-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0.6;
+  pointer-events: none;
+}
+  
 </style>
 </head>
 <body>
@@ -224,9 +238,10 @@ transform: rotate(360deg);
 </div>
 <div class="now-playing" id="nowPlaying"></div>
 
-<!-- Elemento do CD giratório (vinil) -->
+<!-- Elemento do CD giratório (vinil) com sobreposição da arte cd.png -->
 <div class="cd-vinyl" id="cdVinyl">
-<img class="cd-vinyl-img" id="cdVinylImg" src="cd.png" alt="CD Vinil">
+  <img class="cd-vinyl-img" id="cdVinylImgSvg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23111111' stroke='%23ffcd7e' stroke-width='1.5' /%3E%3Ccircle cx='50' cy='50' r='35' fill='%23222222' /%3E%3Ccircle cx='50' cy='50' r='20' fill='%23333333' /%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ffcd7e' /%3E%3Ccircle cx='50' cy='50' r='4' fill='%23000' /%3E%3Cpath d='M50 15 L52 30 L48 30 Z' fill='%23ffcd7e' opacity='0.7' /%3E%3C/svg%3E" alt="CD Vinil">
+  <img class="cd-vinyl-overlay" id="cdVinylImgPng" src="cd.png" alt="Arte do CD">
 </div>
 
 <script>
@@ -258,18 +273,17 @@ const globalProgressBar = document.getElementById("globalProgressBar");
 const nowPlayingDiv = document.getElementById("nowPlaying");
 const carousel = document.getElementById("carousel");
 const cdVinyl = document.getElementById("cdVinyl");
-const cdVinylImg = document.getElementById("cdVinylImg");
 
 // --- Controle do CD (vinil giratório) ---
 function startVinylSpin() {
-if (!cdVinylImg.classList.contains('rotate-slow')) {
-cdVinylImg.classList.add('rotate-slow');
+if (!cdVinyl.classList.contains('rotate-slow')) {
+cdVinyl.classList.add('rotate-slow');
 }
 cdVinyl.classList.add('visible');
 }
 
 function stopVinylSpin() {
-cdVinylImg.classList.remove('rotate-slow');
+cdVinyl.classList.remove('rotate-slow');
 cdVinyl.classList.remove('visible');
 }
 
