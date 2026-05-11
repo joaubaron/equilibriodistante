@@ -165,68 +165,61 @@ cursor: pointer;
 .now-playing-icon { color: #ffcd7e; }
 .now-playing-text { color: #ffcd7e; }
 
-.cd-vinyl.visible {
-opacity: 0.9;
-pointer-events: auto;
-}
-
-.cd-vinyl:active {
-transform: scale(0.92);
-}
-
-.cd-vinyl-img {
-width: 100%;
-height: 100%;
-border-radius: 50%;
-object-fit: cover;
-background: #222;
-box-shadow: inset 0 0 0 2px rgba(255,205,126,0.5), 0 2px 8px rgba(0,0,0,0.3);
-will-change: transform;
-}
-
-/* Animação de giro suave como vinil */
-.rotate-slow {
-animation: spinVinyl 4s linear infinite;
-}
-
-@keyframes spinVinyl {
-from {
-transform: rotate(0deg);
-}
-to {
-transform: rotate(360deg);
-}
-}
-
-/* Mantenha APENAS esta definição, remova a outra .cd-vinyl */
+/* CD giratório - posição fixa canto inferior direito */
 .cd-vinyl {
 position: fixed;
 bottom: 20px;
 right: 20px;
-width: 48px;
-height: 48px;
-z-index: 200;
+width: 80px;
+height: 80px;
+z-index: 150;
 cursor: pointer;
 border-radius: 50%;
-box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-transition: transform 0.2s ease, opacity 0.2s;
-opacity: 0;
-pointer-events: none;
-/* O overlay é absoluto em relação a este fixed */
+box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,205,126,0.3);
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+background: #1a1a1a;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
-.cd-vinyl-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  opacity: 0.6;
-  pointer-events: none;
+.cd-vinyl:active {
+transform: scale(0.95);
 }
-  
+
+.cd-vinyl img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+border-radius: 50%;
+pointer-events: none;
+display: block;
+}
+
+/* animação de rotação lenta - pausada por padrão */
+@keyframes spinVinyl {
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+}
+
+.cd-vinyl.rotating {
+animation: spinVinyl 12s linear infinite;
+}
+
+.cd-vinyl.paused {
+animation-play-state: paused !important;
+}
+
+/* pequeno ajuste para mobile */
+@media (max-width: 480px) {
+.cd-vinyl {
+width: 65px;
+height: 65px;
+bottom: 15px;
+right: 15px;
+}
+}
 </style>
 </head>
 <body>
@@ -238,10 +231,9 @@ pointer-events: none;
 </div>
 <div class="now-playing" id="nowPlaying"></div>
 
-<!-- Elemento do CD giratório (vinil) com sobreposição da arte cd.png -->
+<!-- Elemento do CD giratório -->
 <div class="cd-vinyl" id="cdVinyl">
-  <img class="cd-vinyl-img" id="cdVinylImgSvg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23111111' stroke='%23ffcd7e' stroke-width='1.5' /%3E%3Ccircle cx='50' cy='50' r='35' fill='%23222222' /%3E%3Ccircle cx='50' cy='50' r='20' fill='%23333333' /%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ffcd7e' /%3E%3Ccircle cx='50' cy='50' r='4' fill='%23000' /%3E%3Cpath d='M50 15 L52 30 L48 30 Z' fill='%23ffcd7e' opacity='0.7' /%3E%3C/svg%3E" alt="CD Vinil">
-  <img class="cd-vinyl-overlay" id="cdVinylImgPng" src="cd.png" alt="Arte do CD">
+<img src="cd.png" alt="CD Giratório" id="cdImage">
 </div>
 
 <script>
@@ -272,70 +264,70 @@ const globalProgressFill = document.getElementById("globalProgressFill");
 const globalProgressBar = document.getElementById("globalProgressBar");
 const nowPlayingDiv = document.getElementById("nowPlaying");
 const carousel = document.getElementById("carousel");
-const cdVinyl = document.getElementById("cdVinyl");
+const cdVinylElement = document.getElementById("cdVinyl");
 
-// --- Controle do CD (vinil giratório) ---
-function startVinylSpin() {
-if (!cdVinyl.classList.contains('rotate-slow')) {
-cdVinyl.classList.add('rotate-slow');
-}
-cdVinyl.classList.add('visible');
+// Controle de rotação do CD (pausado por padrão)
+// Guardamos o estado de rotação e se está animando ou não
+let isCdSpinning = false;
+
+// Função para iniciar rotação do CD (a partir do ângulo atual)
+// Como usamos CSS animation, precisamos armazenar o ângulo atual antes de pausar
+// e restaurar quando despausar. Isso garante que a posição seja mantida.
+let currentRotationAngle = 0;
+let animationFrameId = null;
+let cdRotationInterval = null;
+
+// MELHOR ABORDAGEM: Usar uma única animação CSS com infinite e controlar via 'animation-play-state'
+// Porém, para manter a posição exata ao pausar, o CSS já faz isso naturalmente com 'animation-play-state: paused'
+// Quando despausamos, a animação continua exatamente do ângulo onde parou. 
+// Portanto, basta alternar a classe .paused no elemento .cd-vinyl e manter a animação sempre rodando em background.
+// Mas cuidado: Se nunca iniciou a animação, precisamos garantir que ela comece com rotate(0) e depois pause.
+// Estratégia: garantir que a classe 'rotating' esteja sempre presente, e usar 'paused' para pausar/reproduzir.
+// Isso mantém o ângulo atual automaticamente.
+function initCdRotation() {
+    // Adiciona a classe rotating inicialmente, mas pausada até que uma música comece a tocar
+    cdVinylElement.classList.add('rotating');
+    cdVinylElement.classList.add('paused'); // começa pausado
+    isCdSpinning = false;
 }
 
-function stopVinylSpin() {
-cdVinyl.classList.remove('rotate-slow');
-cdVinyl.classList.remove('visible');
+// Inicia o giro (quando música começa a tocar)
+function startCdSpin() {
+    if (!cdVinylElement) return;
+    // Remove a classe paused -> a animação retoma exatamente do ângulo onde parou
+    cdVinylElement.classList.remove('paused');
+    isCdSpinning = true;
 }
 
-// Se o global for pausado, paramos o giro; se tocar, giramos
-function updateVinylBasedOnPlayback() {
-if (playing.audio && !playing.audio.paused) {
-startVinylSpin();
-} else {
-stopVinylSpin();
-}
+// Pausa o giro (quando música é pausada ou parada)
+function pauseCdSpin() {
+    if (!cdVinylElement) return;
+    // Adiciona a classe paused -> a animação congela mantendo transformação atual
+    cdVinylElement.classList.add('paused');
+    isCdSpinning = false;
 }
 
-// Ao clicar no CD: pausa ou resgata a reprodução atual (funciona como um botão global)
-cdVinyl.addEventListener("click", (e) => {
-e.stopPropagation();
-if (playing.audio) {
-if (playing.audio.paused) {
-// Resumir a reprodução
-playing.audio.play().catch(err => console.log("play fail", err));
-// Atualizar botão correspondente
-if (playing.btn) {
-playing.btn.textContent = "⏸";
-playing.btn.classList.add("playing");
+// Parar totalmente (quando todas as músicas param)
+function stopCdSpin() {
+    if (!cdVinylElement) return;
+    cdVinylElement.classList.add('paused');
+    isCdSpinning = false;
 }
-const trackName = playing.lbl?.textContent || (SLIDES[playing.slideIndex]?.labels[playing.trackIndex] || "Música");
-nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
-nowPlayingDiv.classList.add("visible");
-startVinylSpin();
-} else {
-// Pausar
-playing.audio.pause();
-if (playing.btn) {
-playing.btn.textContent = "▶";
-playing.btn.classList.remove("playing");
+
+// Chama ao iniciar qualquer reprodução (playTrack)
+function onPlaybackStart() {
+    startCdSpin();
 }
-nowPlayingDiv.classList.remove("visible");
-stopVinylSpin();
+
+// Chama ao pausar o áudio
+function onPlaybackPause() {
+    pauseCdSpin();
 }
-} else {
-// Se não há música tocando, tentar reproduzir a primeira faixa disponível do slide atual (se houver)
-const currentSlideIdx = Math.round(carousel.scrollLeft / carousel.clientWidth);
-const slideData = SLIDES[currentSlideIdx];
-if (slideData.tracks.length) {
-const slideDiv = carousel.children[currentSlideIdx];
-const firstBtn = slideDiv.querySelector('.play-pause-btn');
-const firstLbl = slideDiv.querySelector('.track-name');
-if (firstBtn) {
-playTrack(currentSlideIdx, 0, firstBtn, firstLbl);
+
+// Chama ao parar completamente (stopAll)
+function onPlaybackStop() {
+    stopCdSpin();
 }
-}
-}
-});
 
 // --- WakeLock ---
 let wakeLock = null;
@@ -371,13 +363,11 @@ stopAll();
 }
 }
 
-// Função para rolar até um slide
 function scrollToSlide(slideIndex) {
 if (slideIndex < 0 || slideIndex >= TOTAL) return;
 carousel.scrollTo({ left: slideIndex * carousel.clientWidth, behavior: "smooth" });
 }
 
-// Clique no now-playing: vai para o slide da música
 nowPlayingDiv.addEventListener("click", () => {
 if (playing.slideIndex >= 0) scrollToSlide(playing.slideIndex);
 });
@@ -400,20 +390,20 @@ nowPlayingDiv.classList.remove("visible");
 nowPlayingDiv.textContent = "";
 globalProgressFill.style.width = "0%";
 releaseWakeLock();
-// Para o giro do vinil
-stopVinylSpin();
+// Para o giro do CD quando não há música
+onPlaybackStop();
 }
 
 function playTrack(slideIndex, trackIndex, btn, lbl) {
 const s = SLIDES[slideIndex];
 if (!s.tracks.length || trackIndex >= s.tracks.length) return;
-stopAll(); // isso já para o vinil via stopVinylSpin dentro de stopAll
+stopAll();
 
 const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
 playing = { slideIndex, trackIndex, audio, btn, lbl };
 
 const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
-if (lbl) lbl.textContent = trackName;
+lbl.textContent = trackName;
 nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
 nowPlayingDiv.classList.add("visible");
 
@@ -422,8 +412,11 @@ btn.classList.add("playing");
 globalProgressFill.style.width = "0%";
 
 acquireWakeLock();
-// Inicia rotação do CD pois a música vai tocar
-startVinylSpin();
+
+// Inicia o giro do CD (vinil) exatamente quando a música começa a tocar
+// Mas chamamos startCdSpin dentro do audio.play().catch e no play bem-sucedido.
+// Vamos chamar no início, mas o giro será ativado somente se o play for bem-sucedido.
+// Caso contrário, será pausado.
 
 // --- MediaSession ---
 if ('mediaSession' in navigator) {
@@ -431,26 +424,18 @@ navigator.mediaSession.metadata = new MediaMetadata({
 title: trackName, artist: 'Renato Russo', album: 'Equilíbrio Distante'
 });
 navigator.mediaSession.setActionHandler('play', () => {
-if (playing.audio) {
 playing.audio.play();
-if(playing.btn) {
 playing.btn.textContent = '⏸';
 playing.btn.classList.add('playing');
-}
 nowPlayingDiv.classList.add('visible');
-startVinylSpin();
-}
+onPlaybackStart();
 });
 navigator.mediaSession.setActionHandler('pause', () => {
-if (playing.audio) {
 playing.audio.pause();
-if(playing.btn) {
 playing.btn.textContent = '▶';
 playing.btn.classList.remove('playing');
-}
 nowPlayingDiv.classList.remove('visible');
-stopVinylSpin();
-}
+onPlaybackPause();
 });
 navigator.mediaSession.setActionHandler('nexttrack', playNext);
 }
@@ -461,17 +446,35 @@ globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%
 }
 };
 audio.addEventListener("timeupdate", updateProgress);
-audio.play().catch(err => {
+audio.play().then(() => {
+    // A música começou a tocar => iniciar giro do CD
+    onPlaybackStart();
+}).catch(err => {
 btn.textContent = "▶";
 btn.classList.remove("playing");
 nowPlayingDiv.classList.remove("visible");
-stopVinylSpin(); // se falhar, não gira
+// Se falhou ao tocar, o CD não deve girar
+onPlaybackStop();
+console.warn("Playback falhou:", err);
 });
 audio.onended = () => {
-// Quando terminar a música, o vinil para momentaneamente até a next tocar
-stopVinylSpin();
-playNext();
+    // Ao terminar a música, para o giro até a próxima iniciar
+    // A função playNext irá chamar playTrack, que por sua vez inicia o giro novamente.
+    onPlaybackStop();
+    playNext();
 };
+// Para caso de erro ou interrupção externa (não usar onpause diretamente pois conflita)
+audio.addEventListener('pause', () => {
+    // Se o áudio foi pausado pelo usuário ou sistema, e ainda é o áudio atual
+    if (playing.audio === audio && !audio.ended) {
+        onPlaybackPause();
+    }
+});
+audio.addEventListener('play', () => {
+    if (playing.audio === audio) {
+        onPlaybackStart();
+    }
+});
 }
 
 function seekAudio(e) {
@@ -526,13 +529,15 @@ if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
     const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
     nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
     nowPlayingDiv.classList.add("visible");
-    startVinylSpin(); // retoma giro
+    // CD já iniciará giro via evento 'play' do audio, mas garantimos manualmente:
+    onPlaybackStart();
   } else {
     playing.audio.pause();
     btn.textContent = "▶";
     btn.classList.remove("playing");
     nowPlayingDiv.classList.remove("visible");
-    stopVinylSpin(); // pausa giro
+    // Pausar giro do CD
+    onPlaybackPause();
   }
 } else {
   playTrack(i, tIdx, btn, lbl);
@@ -552,7 +557,6 @@ const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
 pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
 }, { passive: true });
 
-
 const hint = document.createElement("div");
 hint.className = "swipe-hint";
 hint.innerHTML = "◀ deslize ▶";
@@ -570,16 +574,39 @@ navigator.serviceWorker.register("/equilibrio/sw.js")
 });
 }
 
-// Ajustar estado do CD após qualquer interação externa (garantia)
-document.addEventListener('visibilitychange', () => {
-if (!document.hidden && playing.audio && !playing.audio.paused) {
-startVinylSpin();
-} else if (document.hidden && playing.audio && !playing.audio.paused) {
-// Ao esconder não afetamos, manter giro (opcional)
-} else if (playing.audio && playing.audio.paused) {
-stopVinylSpin();
+// Inicializar CD no estado pausado
+initCdRotation();
+
+// Se houver falha no carregamento da imagem cd.png, manter placeholder visual
+const cdImage = document.getElementById("cdImage");
+if (cdImage) {
+    cdImage.onerror = () => {
+        cdImage.style.background = "#333";
+        cdImage.style.display = "flex";
+        cdImage.style.alignItems = "center";
+        cdImage.style.justifyContent = "center";
+        cdImage.style.color = "#ffcd7e";
+        cdImage.style.fontSize = "10px";
+        cdImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23333' stroke='%23ffcd7e' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='12' fill='%23ffcd7e'/%3E%3C/svg%3E";
+    };
 }
+
+// Interceptar também qualquer pause externo
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && playing.audio && !playing.audio.paused) {
+        // Se o jogo está em background e a música tocando, não paramos o CD propositalmente
+        // Mas se quisermos pausar o CD quando a página fica inativa? Melhor manter igual.
+        // Não interferir.
+    }
 });
+
+// Adicionar um listener global para garantir consistência no estado do CD quando a música é pausada por outros meios (ex: fones desconectados)
+if (playing.audio) {
+    playing.audio.addEventListener('pause', () => { if (playing.audio && playing.audio.paused) onPlaybackPause(); });
+    playing.audio.addEventListener('play', () => { if (playing.audio && !playing.audio.paused) onPlaybackStart(); });
+}
+
+console.log("CD giratório adicionado, com pausa/play sincronizado e mantendo posição.");
 </script>
 </body>
 </html>
