@@ -1,421 +1,420 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="description" content="Álbum solo de Renato Russo, lançado em dezembro de 1995. O disco é inteiramente composto por regravações de canções clássicas e populares em italiano.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Equilibrio distante</title>
-  <meta name="theme-color" content="#fefbea">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
-  <style>
-    * {
-      margin: 0; padding: 0;
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+<meta charset="UTF-8">
+<meta name="description" content="Álbum solo de Renato Russo, lançado em dezembro de 1995. O disco é inteiramente composto por regravações de canções clássicas e populares em italiano.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Equilibrio distante</title>
+<meta name="theme-color" content="#fefbea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<style>
+* {
+margin: 0; padding: 0;
+box-sizing: border-box;
+user-select: none;
+-webkit-tap-highlight-color: transparent;
+}
 
-    html, body {
-      width: 100%; height: 100%;
-      background: #000;
-      overflow: hidden;
-      position: fixed;
-    }
+html, body {
+width: 100%; height: 100%;
+background: #000;
+overflow: hidden;
+position: fixed;
+}
 
-    .carousel {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
-      overflow-x: scroll;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .carousel::-webkit-scrollbar { display: none; }
+.carousel {
+display: flex;
+width: 100vw;
+height: 100vh;
+overflow-x: scroll;
+overflow-y: hidden;
+scroll-snap-type: x mandatory;
+scrollbar-width: none;
+-ms-overflow-style: none;
+}
+.carousel::-webkit-scrollbar { display: none; }
 
-    .slide {
-      flex: 0 0 100vw;
-      width: 100vw;
-      height: 100vh;
-      scroll-snap-align: start;
-      position: relative;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.slide {
+flex: 0 0 100vw;
+width: 100vw;
+height: 100vh;
+scroll-snap-align: start;
+position: relative;
+background: #000;
+display: flex;
+align-items: center;
+justify-content: center;
+}
 
-    .slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-      -webkit-user-drag: none;
-    }
+.slide img {
+width: 100%;
+height: 100%;
+object-fit: contain;
+pointer-events: none;
+-webkit-user-drag: none;
+}
 
-    .audio-control {
-      position: absolute;
-      top: 55px;
-      z-index: 30;
-    }
+.audio-control {
+position: absolute;
+top: 55px;
+z-index: 30;
+}
 
-    .audio-control.left { left: 16px; }
-    .audio-control.right { right: 16px; }
+.audio-control.left { left: 16px; }
+.audio-control.right { right: 16px; }
 
-    .play-pause-btn {
-      background: rgba(0, 0, 0, 0.65);
-      border: 1.5px solid #ffcd7e;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      cursor: pointer;
-      color: #ffcd7e;
-      flex-shrink: 0;
-      transition: transform 0.1s, background 0.15s;
-      backdrop-filter: blur(8px);
-    }
-    .play-pause-btn:active { transform: scale(0.90); }
-    .play-pause-btn.playing { background: rgba(255, 205, 126, 0.25); }
+.play-pause-btn {
+background: rgba(0, 0, 0, 0.65);
+border: 1.5px solid #ffcd7e;
+width: 36px;
+height: 36px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+cursor: pointer;
+color: #ffcd7e;
+flex-shrink: 0;
+transition: transform 0.1s, background 0.15s;
+backdrop-filter: blur(8px);
+}
+.play-pause-btn:active { transform: scale(0.90); }
+.play-pause-btn.playing { background: rgba(255, 205, 126, 0.25); }
 
-    .track-name { display: none; }
+.track-name { display: none; }
 
-    .page-indicator {
-      position: fixed;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      font-size: 12px;
-      font-family: monospace;
-      color: rgba(255, 240, 200, 0.85);
-      background: rgba(0, 0, 0, 0.5);
-      padding: 4px 14px;
-      border-radius: 30px;
-      backdrop-filter: blur(4px);
-      pointer-events: none;
-      letter-spacing: 1px;
-    }
+.page-indicator {
+position: fixed;
+bottom: 22px;
+left: 50%;
+transform: translateX(-50%);
+z-index: 20;
+font-size: 12px;
+font-family: monospace;
+color: rgba(255, 240, 200, 0.85);
+background: rgba(0, 0, 0, 0.5);
+padding: 4px 14px;
+border-radius: 30px;
+backdrop-filter: blur(4px);
+pointer-events: none;
+letter-spacing: 1px;
+}
 
-    .swipe-hint {
-      position: fixed;
-      top: 55px;
-      left: 8rem;
-      background: rgba(0,0,0,0.55);
-      border-radius: 30px;
-      padding: 5px 13px;
-      font-size: 11px;
-      color: #ffe0a3;
-      pointer-events: none;
-      backdrop-filter: blur(5px);
-      z-index: 40;
-      font-weight: 500;
-      transition: opacity 1s;
-      font-family: system-ui, sans-serif;
-    }
+.swipe-hint {
+position: fixed;
+top: 55px;
+left: 8rem;
+background: rgba(0,0,0,0.55);
+border-radius: 30px;
+padding: 5px 13px;
+font-size: 11px;
+color: #ffe0a3;
+pointer-events: none;
+backdrop-filter: blur(5px);
+z-index: 40;
+font-weight: 500;
+transition: opacity 1s;
+font-family: system-ui, sans-serif;
+}
 
-    .global-progress-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 10px;
-      background: rgba(255, 205, 126, 0.2);
-      cursor: pointer;
-      z-index: 100;
-    }
+.global-progress-bar {
+position: fixed;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 10px;
+background: rgba(255, 205, 126, 0.2);
+cursor: pointer;
+z-index: 100;
+}
 
-    .global-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: #ffcd7e;
-      transition: width 0.1s linear;
-    }
-    
-    .now-playing {
-      position: fixed;
-      bottom: 20px;
-      left: 16px;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-family: system-ui, sans-serif;
-      font-weight: 500;
-      color: #ffcd7e;
-      z-index: 100;
-      white-space: nowrap;
-      pointer-events: auto;
-      opacity: 0;
-      transition: opacity 0.3s;
-      text-shadow: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
-    
-    .now-playing.visible { opacity: 1; }
-    .now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.85); }
-    .now-playing-icon { color: #ffcd7e; }
-    .now-playing-text { color: #ffcd7e; }
-  </style>
+.global-progress-fill {
+height: 100%;
+width: 0%;
+background: #ffcd7e;
+transition: width 0.1s linear;
+}
+
+.now-playing {
+position: fixed;
+bottom: 20px;
+left: 16px;
+background: rgba(0,0,0,0.7);
+backdrop-filter: blur(8px);
+padding: 4px 10px;
+border-radius: 20px;
+font-size: 11px;
+font-family: system-ui, sans-serif;
+font-weight: 500;
+color: #ffcd7e;
+z-index: 100;
+white-space: nowrap;
+pointer-events: auto;
+opacity: 0;
+transition: opacity 0.3s;
+text-shadow: none;
+box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+cursor: pointer;
+}
+
+.now-playing.visible { opacity: 1; }
+.now-playing:active { transform: scale(0.97); background: rgba(0,0,0,0.85); }
+.now-playing-icon { color: #ffcd7e; }
+.now-playing-text { color: #ffcd7e; }
+</style>
 </head>
 <body>
 
 <div class="carousel" id="carousel"></div>
-<div class="page-indicator" id="pageIndicator">1 / 16</div>
+<div class="page-indicator" id="pageIndicator">1 / 15</div>
 <div class="global-progress-bar" id="globalProgressBar">
-  <div class="global-progress-fill" id="globalProgressFill"></div>
+<div class="global-progress-fill" id="globalProgressFill"></div>
 </div>
 <div class="now-playing" id="nowPlaying"></div>
 
 <script>
-  const SLIDES = [
-    { img: "encarte1.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte2.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                          labels: ["Gente"],                                       sides: ["right"] },
-    { img: "encarte4.webp",  tracks: ["02-Strani Amori.mp3", "03-I Venti Del Cuore.mp3"],       labels: ["Strani Amori", "I Venti Del Cuore"],           sides: ["left", "right"] },
-    { img: "encarte5.webp",  tracks: ["04-Scrivimi.mp3", "05-Dolcissima Maria.mp3"],            labels: ["Scrivimi", "Dolcissima Maria"],                sides: ["left", "right"] },
-    { img: "encarte6.webp",  tracks: ["06-Lettera.mp3", "07-La Solitudine.mp3"],                labels: ["Lettera", "La Solitudine"],                    sides: ["left", "right"] },
-    { img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                        labels: ["Passerà"],                                     sides: ["right"] },
-    { img: "encarte8.webp",  tracks: ["09-Come Fa Un'Onda.mp3", "10-La Forza Della Vita.mp3"],  labels: ["Come Fa Un'Onda", "La Forza Della Vita"],      sides: ["left", "right"] },
-    { img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                            labels: ["Due"],                                         sides: ["right"] },
-    { img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                     labels: ["Piú O Meno"],                                  sides: ["left"] },
-    { img: "encarte11.webp", tracks: ["13-La Vita è Adesso.mp3"],                               labels: ["La Vita è Adesso"],                            sides: ["left"] },
-    { img: "encarte12.webp", tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte13.webp", tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte14.webp", tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte15.webp", tracks: [],                                                        labels: [],                                              sides: [] },
-    { img: "encarte16.webp", tracks: [],                                                        labels: [],                                              sides: [] },
-  ];
+const SLIDES = [
+{ img: "encarte1.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
+{ img: "encarte2.webp",  tracks: [],                                                        labels: [],                                              sides: [] },
+{ img: "encarte3.webp",  tracks: ["01-Gente.mp3"],                                          labels: ["Gente"],                                       sides: ["right"] },
+{ img: "encarte4.webp",  tracks: ["02-Strani Amori.mp3", "03-I Venti Del Cuore.mp3"],       labels: ["Strani Amori", "I Venti Del Cuore"],           sides: ["left", "right"] },
+{ img: "encarte5.webp",  tracks: ["04-Scrivimi.mp3", "05-Dolcissima Maria.mp3"],            labels: ["Scrivimi", "Dolcissima Maria"],                sides: ["left", "right"] },
+{ img: "encarte6.webp",  tracks: ["06-Lettera.mp3", "07-La Solitudine.mp3"],                labels: ["Lettera", "La Solitudine"],                    sides: ["left", "right"] },
+{ img: "encarte7.webp",  tracks: ["08-Passerà.mp3"],                                        labels: ["Passerà"],                                     sides: ["right"] },
+{ img: "encarte8.webp",  tracks: ["09-Come Fa Un'Onda.mp3", "10-La Forza Della Vita.mp3"],  labels: ["Come Fa Un'Onda", "La Forza Della Vita"],      sides: ["left", "right"] },
+{ img: "encarte9.webp",  tracks: ["11-Due.mp3"],                                            labels: ["Due"],                                         sides: ["right"] },
+{ img: "encarte10.webp", tracks: ["12-Piú O Meno.mp3"],                                     labels: ["Piú O Meno"],                                  sides: ["left"] },
+{ img: "encarte11.webp", tracks: ["13-La Vita è Adesso.mp3"],                               labels: ["La Vita è Adesso"],                            sides: ["left"] },
+{ img: "encarte12.webp", tracks: [],                                                        labels: [],                                              sides: [] },
+{ img: "encarte13.webp", tracks: [],                                                        labels: [],                                              sides: [] },
+{ img: "encarte14.webp", tracks: [],                                                        labels: [],                                              sides: [] },
+{ img: "encarte15.webp", tracks: [],                                                        labels: [],                                              sides: [] },
+];
 
-  const IMG_BASE = "./encartes/";
-  const MP3_BASE = "./mp3/";
-  const TOTAL = SLIDES.length;
+const IMG_BASE = "./encartes/";
+const MP3_BASE = "./mp3/";
+const TOTAL = SLIDES.length;
 
-  let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
-  const globalProgressFill = document.getElementById("globalProgressFill");
-  const globalProgressBar = document.getElementById("globalProgressBar");
-  const nowPlayingDiv = document.getElementById("nowPlaying");
-  const carousel = document.getElementById("carousel");
+let playing = { slideIndex: -1, trackIndex: 0, audio: null, btn: null, lbl: null };
+const globalProgressFill = document.getElementById("globalProgressFill");
+const globalProgressBar = document.getElementById("globalProgressBar");
+const nowPlayingDiv = document.getElementById("nowPlaying");
+const carousel = document.getElementById("carousel");
 
-  // --- WakeLock ---
-  let wakeLock = null;
+// --- WakeLock ---
+let wakeLock = null;
 
-  async function acquireWakeLock() {
-    if ('wakeLock' in navigator) {
-      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
-    }
-  }
+async function acquireWakeLock() {
+if ('wakeLock' in navigator) {
+try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+}
 
-  function releaseWakeLock() {
-    if (wakeLock) { wakeLock.release(); wakeLock = null; }
-  }
+function releaseWakeLock() {
+if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
 
-  // --- Reprodução contínua ---
-  function playNext() {
-    const nextTrack = playing.trackIndex + 1;
-    if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
-      const slide = carousel.children[playing.slideIndex];
-      const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
-      const lbl = slide.querySelectorAll('.track-name')[nextTrack];
-      playTrack(playing.slideIndex, nextTrack, btn, lbl);
-    } else {
-      for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
-        if (SLIDES[i].tracks.length) {
-          scrollToSlide(i);
-          const slide = carousel.children[i];
-          playTrack(i, 0, slide.querySelector('.play-pause-btn'), slide.querySelector('.track-name'));
-          return;
-        }
-      }
-      stopAll();
-    }
-  }
+// --- Reprodução contínua ---
+function playNext() {
+const nextTrack = playing.trackIndex + 1;
+if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
+const slide = carousel.children[playing.slideIndex];
+const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
+const lbl = slide.querySelectorAll('.track-name')[nextTrack];
+playTrack(playing.slideIndex, nextTrack, btn, lbl);
+} else {
+for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
+if (SLIDES[i].tracks.length) {
+scrollToSlide(i);
+const slide = carousel.children[i];
+playTrack(i, 0, slide.querySelector('.play-pause-btn'), slide.querySelector('.track-name'));
+return;
+}
+}
+stopAll();
+}
+}
 
-  // Função para rolar até um slide
-  function scrollToSlide(slideIndex) {
-    if (slideIndex < 0 || slideIndex >= TOTAL) return;
-    carousel.scrollTo({ left: slideIndex * carousel.clientWidth, behavior: "smooth" });
-  }
+// Função para rolar até um slide
+function scrollToSlide(slideIndex) {
+if (slideIndex < 0 || slideIndex >= TOTAL) return;
+carousel.scrollTo({ left: slideIndex * carousel.clientWidth, behavior: "smooth" });
+}
 
-  // Clique no now-playing: vai para o slide da música
-  nowPlayingDiv.addEventListener("click", () => {
-    if (playing.slideIndex >= 0) scrollToSlide(playing.slideIndex);
-  });
+// Clique no now-playing: vai para o slide da música
+nowPlayingDiv.addEventListener("click", () => {
+if (playing.slideIndex >= 0) scrollToSlide(playing.slideIndex);
+});
 
-  function stopAll() {
-    if (playing.audio) {
-      playing.audio.onended = null;
-      playing.audio.pause();
-      playing.audio = null;
-    }
-    if (playing.btn) {
-      playing.btn.textContent = "▶";
-      playing.btn.classList.remove("playing");
-      playing.btn = null;
-    }
-    playing.slideIndex = -1;
-    playing.trackIndex = 0;
-    playing.lbl = null;
-    nowPlayingDiv.classList.remove("visible");
-    nowPlayingDiv.textContent = "";
-    globalProgressFill.style.width = "0%";
-    releaseWakeLock();
-  }
+function stopAll() {
+if (playing.audio) {
+playing.audio.onended = null;
+playing.audio.pause();
+playing.audio = null;
+}
+if (playing.btn) {
+playing.btn.textContent = "▶";
+playing.btn.classList.remove("playing");
+playing.btn = null;
+}
+playing.slideIndex = -1;
+playing.trackIndex = 0;
+playing.lbl = null;
+nowPlayingDiv.classList.remove("visible");
+nowPlayingDiv.textContent = "";
+globalProgressFill.style.width = "0%";
+releaseWakeLock();
+}
 
-  function playTrack(slideIndex, trackIndex, btn, lbl) {
-    const s = SLIDES[slideIndex];
-    if (!s.tracks.length || trackIndex >= s.tracks.length) return;
-    stopAll();
+function playTrack(slideIndex, trackIndex, btn, lbl) {
+const s = SLIDES[slideIndex];
+if (!s.tracks.length || trackIndex >= s.tracks.length) return;
+stopAll();
 
-    const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
-    playing = { slideIndex, trackIndex, audio, btn, lbl };
+const audio = new Audio(MP3_BASE + s.tracks[trackIndex]);
+playing = { slideIndex, trackIndex, audio, btn, lbl };
 
-    const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
-    lbl.textContent = trackName;
-    nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
-    nowPlayingDiv.classList.add("visible");
-    
+const trackName = s.labels[trackIndex] || s.tracks[trackIndex];
+lbl.textContent = trackName;
+nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
+nowPlayingDiv.classList.add("visible");
+
+btn.textContent = "⏸";
+btn.classList.add("playing");
+globalProgressFill.style.width = "0%";
+
+acquireWakeLock();
+
+// --- MediaSession ---
+if ('mediaSession' in navigator) {
+navigator.mediaSession.metadata = new MediaMetadata({
+title: trackName, artist: 'Renato Russo', album: 'Equilíbrio Distante'
+});
+navigator.mediaSession.setActionHandler('play', () => {
+playing.audio.play();
+playing.btn.textContent = '⏸';
+playing.btn.classList.add('playing');
+nowPlayingDiv.classList.add('visible');
+});
+navigator.mediaSession.setActionHandler('pause', () => {
+playing.audio.pause();
+playing.btn.textContent = '▶';
+playing.btn.classList.remove('playing');
+nowPlayingDiv.classList.remove('visible');
+});
+navigator.mediaSession.setActionHandler('nexttrack', playNext);
+}
+
+const updateProgress = () => {
+if (audio.duration && !isNaN(audio.duration) && audio.currentTime) {
+globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%";
+}
+};
+audio.addEventListener("timeupdate", updateProgress);
+audio.play().catch(err => {
+btn.textContent = "▶";
+btn.classList.remove("playing");
+nowPlayingDiv.classList.remove("visible");
+});
+audio.onended = playNext;
+}
+
+function seekAudio(e) {
+if (!playing.audio || !playing.audio.duration) return;
+const rect = globalProgressBar.getBoundingClientRect();
+const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+const ratio = Math.max(0, Math.min(1, x / rect.width));
+playing.audio.currentTime = ratio * playing.audio.duration;
+}
+
+globalProgressBar.addEventListener("mousedown", seekAudio);
+globalProgressBar.addEventListener("touchstart", seekAudio, { passive: true });
+globalProgressBar.addEventListener("mousemove", e => { if (e.buttons === 1 && playing.audio) seekAudio(e); });
+globalProgressBar.addEventListener("touchmove", seekAudio, { passive: true });
+
+// Construir slides
+SLIDES.forEach((s, i) => {
+const div = document.createElement("div");
+div.className = "slide";
+const img = document.createElement("img");
+img.src = IMG_BASE + s.img;
+img.alt = s.labels[0] || `Encarte ${i + 1}`;
+img.draggable = false;
+img.onerror = () => {
+if (img.dataset.fallback) return;
+img.dataset.fallback = "1";
+const fb = document.createElement("div");
+fb.style.cssText = "position:absolute;color:#e2c28b;font-size:1.4rem;text-align:center;font-weight:bold;";
+fb.textContent = s.labels[0] ? `🎵 ${s.labels[0]}` : `Encarte ${i + 1}`;
+div.appendChild(fb);
+};
+div.appendChild(img);
+
+if (s.tracks.length) {
+s.tracks.forEach((track, tIdx) => {
+const side = s.sides[tIdx] || "left";
+const ctrl = document.createElement("div");
+ctrl.className = `audio-control ${side}`;
+const btn = document.createElement("button");
+btn.className = "play-pause-btn";
+btn.textContent = "▶";
+const lbl = document.createElement("span");
+lbl.className = "track-name";
+lbl.textContent = s.labels[tIdx] || track;
+btn.addEventListener("click", e => {
+e.stopPropagation();
+if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
+  if (playing.audio.paused) {
+    playing.audio.play();
     btn.textContent = "⏸";
     btn.classList.add("playing");
-    globalProgressFill.style.width = "0%";
-
-    acquireWakeLock();
-
-    // --- MediaSession ---
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: trackName, artist: 'Renato Russo', album: 'Equilíbrio Distante'
-      });
-      navigator.mediaSession.setActionHandler('play', () => {
-        playing.audio.play();
-        playing.btn.textContent = '⏸';
-        playing.btn.classList.add('playing');
-        nowPlayingDiv.classList.add('visible');
-      });
-      navigator.mediaSession.setActionHandler('pause', () => {
-        playing.audio.pause();
-        playing.btn.textContent = '▶';
-        playing.btn.classList.remove('playing');
-        nowPlayingDiv.classList.remove('visible');
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', playNext);
-    }
-
-    const updateProgress = () => {
-      if (audio.duration && !isNaN(audio.duration) && audio.currentTime) {
-        globalProgressFill.style.width = (audio.currentTime / audio.duration * 100) + "%";
-      }
-    };
-    audio.addEventListener("timeupdate", updateProgress);
-    audio.play().catch(err => {
-      btn.textContent = "▶";
-      btn.classList.remove("playing");
-      nowPlayingDiv.classList.remove("visible");
-    });
-    audio.onended = playNext;
+    const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
+    nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
+    nowPlayingDiv.classList.add("visible");
+  } else {
+    playing.audio.pause();
+    btn.textContent = "▶";
+    btn.classList.remove("playing");
+    nowPlayingDiv.classList.remove("visible");
   }
+} else {
+  playTrack(i, tIdx, btn, lbl);
+}
+});
+ctrl.appendChild(btn);
+ctrl.appendChild(lbl);
+div.appendChild(ctrl);
+});
+}
+carousel.appendChild(div);
+});
 
-  function seekAudio(e) {
-    if (!playing.audio || !playing.audio.duration) return;
-    const rect = globalProgressBar.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const ratio = Math.max(0, Math.min(1, x / rect.width));
-    playing.audio.currentTime = ratio * playing.audio.duration;
-  }
-
-  globalProgressBar.addEventListener("mousedown", seekAudio);
-  globalProgressBar.addEventListener("touchstart", seekAudio, { passive: true });
-  globalProgressBar.addEventListener("mousemove", e => { if (e.buttons === 1 && playing.audio) seekAudio(e); });
-  globalProgressBar.addEventListener("touchmove", seekAudio, { passive: true });
-
-  // Construir slides
-  SLIDES.forEach((s, i) => {
-    const div = document.createElement("div");
-    div.className = "slide";
-    const img = document.createElement("img");
-    img.src = IMG_BASE + s.img;
-    img.alt = s.labels[0] || `Encarte ${i + 1}`;
-    img.draggable = false;
-    img.onerror = () => {
-      if (img.dataset.fallback) return;
-      img.dataset.fallback = "1";
-      const fb = document.createElement("div");
-      fb.style.cssText = "position:absolute;color:#e2c28b;font-size:1.4rem;text-align:center;font-weight:bold;";
-      fb.textContent = s.labels[0] ? `🎵 ${s.labels[0]}` : `Encarte ${i + 1}`;
-      div.appendChild(fb);
-    };
-    div.appendChild(img);
-
-    if (s.tracks.length) {
-      s.tracks.forEach((track, tIdx) => {
-        const side = s.sides[tIdx] || "left";
-        const ctrl = document.createElement("div");
-        ctrl.className = `audio-control ${side}`;
-        const btn = document.createElement("button");
-        btn.className = "play-pause-btn";
-        btn.textContent = "▶";
-        const lbl = document.createElement("span");
-        lbl.className = "track-name";
-        lbl.textContent = s.labels[tIdx] || track;
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          if (playing.slideIndex === i && playing.trackIndex === tIdx && playing.audio) {
-            if (playing.audio.paused) {
-              playing.audio.play();
-              btn.textContent = "⏸";
-              btn.classList.add("playing");
-              const trackName = playing.lbl?.textContent || s.labels[tIdx] || track;
-              nowPlayingDiv.innerHTML = `<span class="now-playing-icon">♫</span> <span class="now-playing-text">${trackName}</span>`;
-              nowPlayingDiv.classList.add("visible");
-            } else {
-              playing.audio.pause();
-              btn.textContent = "▶";
-              btn.classList.remove("playing");
-              nowPlayingDiv.classList.remove("visible");
-            }
-          } else {
-            playTrack(i, tIdx, btn, lbl);
-          }
-        });
-        ctrl.appendChild(btn);
-        ctrl.appendChild(lbl);
-        div.appendChild(ctrl);
-      });
-    }
-    carousel.appendChild(div);
-  });
-
-  const pageIndicator = document.getElementById("pageIndicator");
-  carousel.addEventListener("scroll", () => {
-    const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
-    pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
-  }, { passive: true });
+const pageIndicator = document.getElementById("pageIndicator");
+carousel.addEventListener("scroll", () => {
+const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
+}, { passive: true });
 
 
-  const hint = document.createElement("div");
-  hint.className = "swipe-hint";
-  hint.innerHTML = "◀ deslize ▶";
-  document.body.appendChild(hint);
-  setTimeout(() => {
-    hint.style.opacity = "0";
-    setTimeout(() => hint.remove(), 1000);
-  }, 5000);
+const hint = document.createElement("div");
+hint.className = "swipe-hint";
+hint.innerHTML = "◀ deslize ▶";
+document.body.appendChild(hint);
+setTimeout(() => {
+hint.style.opacity = "0";
+setTimeout(() => hint.remove(), 1000);
+}, 5000);
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/equilibrio/sw.js")
-        .then(r => console.log("SW registrado:", r.scope))
-        .catch(e => console.warn("SW falhou:", e));
-    });
-  }
+if ("serviceWorker" in navigator) {
+window.addEventListener("load", () => {
+navigator.serviceWorker.register("/equilibrio/sw.js")
+.then(r => console.log("SW registrado:", r.scope))
+.catch(e => console.warn("SW falhou:", e));
+});
+}
 </script>
 </body>
 </html>
