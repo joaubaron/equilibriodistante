@@ -1,4 +1,4 @@
-const CACHE_VERSION = '11.05.2026-1015';
+const CACHE_VERSION = '11.05.2026-1017';
 const CACHE_STATIC  = `gente-static-${CACHE_VERSION}`;
 const CACHE_MP3     = `gente-mp3-${CACHE_VERSION}`;
 const BASE          = '/equilibrio';
@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   BASE + '/manifest.json',
   BASE + '/icon-192.png',
   BASE + '/icon-512.png',
+  BASE + '/cd.png',  
   BASE + '/encartes/encarte1.webp',
   BASE + '/encartes/encarte2.webp',
   BASE + '/encartes/encarte3.webp',
