@@ -591,22 +591,35 @@ if (cdImage) {
     };
 }
 
-// Interceptar também qualquer pause externo
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && playing.audio && !playing.audio.paused) {
-        // Se o jogo está em background e a música tocando, não paramos o CD propositalmente
-        // Mas se quisermos pausar o CD quando a página fica inativa? Melhor manter igual.
-        // Não interferir.
-    }
-});
+// Controle de visibilidade do CD (fade nos slides 1 e 2)
+const fadeStyle = document.createElement('style');
+fadeStyle.textContent = `.cd-vinyl { transition: opacity 0.3s ease; } .cd-vinyl.hiding { opacity: 0; pointer-events: none; }`;
+document.head.appendChild(fadeStyle);
 
-// Adicionar um listener global para garantir consistência no estado do CD quando a música é pausada por outros meios (ex: fones desconectados)
-if (playing.audio) {
-    playing.audio.addEventListener('pause', () => { if (playing.audio && playing.audio.paused) onPlaybackPause(); });
-    playing.audio.addEventListener('play', () => { if (playing.audio && !playing.audio.paused) onPlaybackStart(); });
+function updateCdVisibility(slideIndex) {
+    const cd = document.getElementById("cdVinyl");
+    if (!cd) return;
+    if (slideIndex === 0 || slideIndex === 1) {
+        cd.classList.add('hiding');
+    } else {
+        cd.classList.remove('hiding');
+    }
 }
 
-console.log("CD giratório adicionado, com pausa/play sincronizado e mantendo posição.");
+// Atualizar visibilidade ao rolar
+const originalScroll = carousel.addEventListener('scroll', () => {
+    const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    pageIndicator.textContent = `${Math.min(idx + 1, TOTAL)} / ${TOTAL}`;
+    updateCdVisibility(idx);
+});
+
+// Verificar slide inicial
+setTimeout(() => {
+    const initialIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    updateCdVisibility(initialIndex);
+}, 100);
+
+console.log("CD giratório adicionado, com pausa/play sincronizado, mantendo posição e fade nos slides 1 e 2.");
 </script>
 </body>
 </html>
