@@ -1,4 +1,4 @@
-const CACHE_VERSION = '11.05.2026-1501';
+const CACHE_VERSION = '11.05.2026-1515';
 const CACHE_STATIC  = `equilibrio-static-${CACHE_VERSION}`;
 const CACHE_MP3     = `equilibrio-mp3-${CACHE_VERSION}`;
 const BASE = self.location.pathname.replace('/sw.js', '');
