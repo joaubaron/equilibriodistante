@@ -170,8 +170,8 @@ cursor: pointer;
 position: fixed;
 bottom: 20px;
 right: 20px;
-width: 80px;
-height: 80px;
+width: 60px;
+height: 60px;
 z-index: 150;
 cursor: pointer;
 border-radius: 50%;
@@ -182,6 +182,16 @@ border-radius: 50%;
 display: flex;
 align-items: center;
 justify-content: center;
+}
+
+/* pequeno ajuste para mobile */
+@media (max-width: 480px) {
+.cd-vinyl {
+width: 60px;
+height: 60px;
+bottom: 15px;
+right: 15px;
+}
 }
 
 .cd-vinyl:active {
@@ -211,15 +221,6 @@ animation: spinVinyl 12s linear infinite;
 animation-play-state: paused !important;
 }
 
-/* pequeno ajuste para mobile */
-@media (max-width: 480px) {
-.cd-vinyl {
-width: 65px;
-height: 65px;
-bottom: 15px;
-right: 15px;
-}
-}
 </style>
 </head>
 <body>
