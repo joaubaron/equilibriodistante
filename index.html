@@ -223,25 +223,32 @@ function playNext() {
     
     // Se tem próxima música no mesmo slide
     if (nextTrack < SLIDES[playing.slideIndex].tracks.length) {
-        const slide = carousel.children[playing.slideIndex];
-        const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
-        const lbl = slide.querySelectorAll('.track-name')[nextTrack];
-        playTrack(playing.slideIndex, nextTrack, btn, lbl);
+        // Primeiro: rola para o slide correto (mesmo que já esteja nele)
+        scrollToSlide(playing.slideIndex);
+        
+        // Depois: toca a música
+        setTimeout(() => {
+            const slide = carousel.children[playing.slideIndex];
+            const btn = slide.querySelectorAll('.play-pause-btn')[nextTrack];
+            const lbl = slide.querySelectorAll('.track-name')[nextTrack];
+            playTrack(playing.slideIndex, nextTrack, btn, lbl);
+        }, 150);
         return;
     }
     
-    // Procura o PRÓXIMO slide que tem música (pode ser à frente OU atrás)
+    // Procura próximo slide com música (do início ao fim)
     let nextSlideIndex = -1;
-    
-    // Primeiro tenta encontrar após o slide atual
-    for (let i = playing.slideIndex + 1; i < TOTAL; i++) {
-        if (SLIDES[i].tracks.length > 0) {
-            nextSlideIndex = i;
-            break;
+    for (let i = 0; i < TOTAL; i++) {
+        if (i !== playing.slideIndex && SLIDES[i].tracks.length > 0) {
+            // Encontra o próximo slide com música após o atual
+            if (i > playing.slideIndex) {
+                nextSlideIndex = i;
+                break;
+            }
         }
     }
     
-    // Se não achou depois, procura desde o início (volta para trás)
+    // Se não achou depois, pega o primeiro slide com música
     if (nextSlideIndex === -1) {
         for (let i = 0; i < playing.slideIndex; i++) {
             if (SLIDES[i].tracks.length > 0) {
@@ -252,20 +259,18 @@ function playNext() {
     }
     
     if (nextSlideIndex !== -1) {
-        // Rola para o slide (pode ser esquerda ou direita)
+        // Primeiro: rola para o slide da nova música
         scrollToSlide(nextSlideIndex);
         
-        // Espera o scroll terminar e toca
+        // Depois: toca a primeira música daquele slide
         setTimeout(() => {
             const slide = carousel.children[nextSlideIndex];
-            if (slide && SLIDES[nextSlideIndex].tracks.length > 0) {
-                const btn = slide.querySelector('.play-pause-btn');
-                const lbl = slide.querySelector('.track-name');
-                if (btn) {
-                    playTrack(nextSlideIndex, 0, btn, lbl);
-                }
+            const btn = slide.querySelector('.play-pause-btn');
+            const lbl = slide.querySelector('.track-name');
+            if (btn) {
+                playTrack(nextSlideIndex, 0, btn, lbl);
             }
-        }, 200);
+        }, 150);
     } else {
         stopAll();
     }
